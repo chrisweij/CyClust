@@ -4,6 +4,20 @@ from __future__ import absolute_import, unicode_literals
 import numpy as np 
 import math
 
+
+
+def unnest(l):
+    '''
+    Function to unnest list
+    
+    Input: list l
+    Output: Unnested list 
+    '''
+    
+    
+    l_unnest = [item for sublist in l for item in sublist]
+    return l_unnest
+
 ##################################################
 # FUNCTIONS TO COMPARE DISTANCES
 ###################################################
@@ -60,7 +74,8 @@ def great_circle_np(lat1, long1, lat2, long2,dist="kilometers"):
     # phi = 90 - latitude
     phi1 = (90.0 - lat1)*degrees_to_radians
     phi2 = (90.0 - lat2)*degrees_to_radians
-        
+    
+    theta1 = long1*degrees_to_radians
     theta2 = long2*degrees_to_radians
         
     # Compute spherical distance from spherical coordinates.
@@ -122,34 +137,55 @@ def compare_trks(x_1,y_1,t_1,x_2,y_2,t_2):
 	return dist, timdiff
 
 #Compute the spatial and distance between two tracks
-def compare_trks_np(x_1,y_1,t_1,x_2,y_2,t_2):
-	len1 = len(x_1)
-	len2 = len(x_2)
+def compare_trks_np(x_1,y_1,t_1,x_2,y_2,t_2,timthresh=None):
+    len1 = len(x_1)
+    len2 = len(x_2)
 
-	timdiff = np.empty([len1,len2])*np.nan
+    timdiff = np.empty([len1,len2])*np.nan
 
-	lt1 = np.outer(y_1,np.ones(len2))
-	ln1 = np.outer(x_1,np.ones(len2))
-	lt2 = np.outer(np.ones(len1),y_2)
-	ln2 =np.outer(np.ones(len1),x_2)
+    lt1 = np.outer(y_1,np.ones(len2))
+    ln1 = np.outer(x_1,np.ones(len2))
+    lt2 = np.outer(np.ones(len1),y_2)
+    ln2 = np.outer(np.ones(len1),x_2)
 
-	avelat = (lt1 + lt2)*0.5
-	corrfac = np.abs(calc_Rossby_radius(lat=avelat)) #/calc_Rossby_radius(lat=45))
-	dist = great_circle_np(lt1,ln1,lt2,ln2)/corrfac
-
-
-	for idx1 in range(len1):
-		for idx2 in range(len2): #range(len2): #
-			dttemp = ((t_1[idx1] - t_2[idx2]).total_seconds())/3600
-			timdiff[idx1,idx2] = dttemp
+    avelat = (lt1 + lt2)*0.5
+    corrfac = np.abs(calc_Rossby_radius(lat=avelat)) #/calc_Rossby_radius(lat=45))
+    dist = great_circle_np(lt1,ln1,lt2,ln2)/corrfac
 
 
-	#t1 = np.outer(t_1,np.ones(len2))
-	#t2 = np.outer(np.ones(len1),t_2)
-	#timdiff = ((t_1[idx1] - t_2[idx2]).total_seconds())/3600
-
-	return dist, timdiff
-	
+    for idx1 in range(len1):
+        for idx2 in range(len2): #range(len2): #
+            dttemp = ((t_1[idx1] - t_2[idx2]).total_seconds())/3600
+            timdiff[idx1,idx2] = dttemp
+            
+    #Calculate time space diff
+    if( timthresh == None):
+        timspace_diff = None
+    else:
+        timspace_diff = (dist**2 + timdiff**2/timthresh**2)**(0.5)
+    #t1 = np.outer(t_1,np.ones(len2))
+    #t2 = np.outer(np.ones(len1),t_2)
+    #timdiff = ((t_1[idx1] - t_2[idx2]).total_seconds())/3600
+    if( timthresh == None):
+        return dist, timdiff
+    else:
+        return dist, timdiff, timspace_diff
+    
+    
+def dist_along_track_np(x,y):
+    lentrk = len(x)
+    
+    if(lentrk <= 1):
+        raise ValueError("Vector must have at least two points")
+    else:
+        avelat = (y[1:] + y[0:(lentrk-1)])*0.5
+        corrfac = np.abs(calc_Rossby_radius(lat=avelat)) 
+        dist = great_circle_np(y[1:],x[1:],y[0:(lentrk-1)],x[0:(lentrk-1)])/corrfac
+        
+    totaldist = np.nansum(dist)
+    
+    return dist, totaldist
+        
 #Compare 
 def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
 	len1 = len(x_1)
@@ -197,22 +233,225 @@ def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
 
 #Recursive function to find uniquely connected cluster of storms
 def find_cluster(cluster,connTracks):
-	print("CLustering analysis for the following storms:")
-	print(cluster)
-	cluster_old = cluster
-	
-	#Loop over storms to find connected storms
-	for stridx in cluster: 
-		conntemp = connTracks[stridx - 1,::]
-		if(np.nansum(conntemp) > 0):
-			strmstemp = np.where(conntemp > 0)[0]  + 1
-			cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+    #print("CLustering analysis for the following storms:")
+    #print(cluster)
+    cluster_old = cluster
 
-	#Remove duplicate storms
-	cluster = np.unique(cluster)
+    #Loop over storms to find connected storms
+    for stridx in cluster: 
+        conntemp = connTracks[stridx,::] #-1
+        if(np.nansum(conntemp) > 0):
+            strmstemp = np.where(conntemp > 0)[0]  #+ 1
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
 
-	#Check if all storms are counted??
-	if(len(cluster) == len(cluster_old)):
-		return cluster_old
-	else:
-		return find_cluster(cluster,connTracks)
+    #Remove duplicate storms
+    cluster = np.unique(cluster)
+
+    #Check if all storms are counted??
+    if(len(cluster) == len(cluster_old)):
+        return cluster_old
+    else:
+        return find_cluster(cluster,connTracks)
+    
+#Recursive function to find uniquely connected cluster of storms + Type of cluster
+def find_cluster_type(cluster,connTracks):
+    #print("CLustering analysis for the following storms:")
+    #print(cluster)
+    cluster_old = cluster
+
+    #Loop over storms to find connected storms
+    for stridx in cluster: 
+        conntemp = connTracks[stridx,::] #-1
+        if( np.nansum(conntemp) > 0):
+            strmstemp = np.where(conntemp > 0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+            
+    #Remove duplicate storms
+    cluster = np.unique(cluster)
+
+    #Check if all storms are counted??
+    if(len(cluster) == len(cluster_old)):
+        connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] != 0])]
+        
+        if(len(cluster) == 1):
+            clusterType = "None"
+        elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Time"
+        elif(all((x == 1.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Length"
+        else:
+            clusterType = "Mixed"
+        
+        return cluster_old, connTypes, clusterType
+    else:
+        #connTypes.extend(list(typetemp))
+        return find_cluster_type(cluster,connTracks)
+        
+   
+    
+def find_cluster_type2(cluster,connTracks,angleTracks):
+    #print("CLustering analysis for the following storms:")
+    #print(cluster)
+    cluster_old = cluster
+
+    #Loop over storms to find connected storms
+    for stridx in cluster: 
+        conntemp = connTracks[stridx,::] #-1
+        if(np.nansum(conntemp) > 0):
+            strmstemp = np.where(conntemp > 0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+
+    #Remove duplicate storms
+    cluster = np.unique(cluster)
+
+    #Check if all storms are counted??
+    if(len(cluster) == len(cluster_old)):
+        connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] != 0])]
+        anglesClust = [x for strm in cluster for x in list(angleTracks[strm,:][angleTracks[strm,:] != 0])]
+        
+        if(len(cluster) == 1):
+            clusterType = "None"
+        elif(all((x == 1.0) for x in connTypes)):
+            clusterType = "Length"
+        elif(all((x == 2.0) for x in connTypes)):
+            clusterType = "Time"
+        else:
+            clusterType = "Mixed"
+        
+        meanAngle = np.nanmean(anglesClust)
+        stdAngle = np.nanstd(anglesClust)
+
+        if(len(cluster) == 1):
+            angleType = "None"        
+        elif(meanAngle > 60):
+            angleType = "Time"
+        elif(meanAngle < 45):
+            angleType = "Length"
+        else:
+            angleType = "Mixed"
+        return cluster_old, connTypes, anglesClust, clusterType, angleType
+    else:
+        #connTypes.extend(list(typetemp))
+        return find_cluster_type2(cluster,connTracks,angleTracks)
+    
+    
+    
+#Recursive function to find uniquely connected cluster of storms + Type of cluster
+def find_cluster_type3(cluster,connTracks,contype="All"):
+    #print("CLustering analysis for the following storms:")
+    #print(cluster)
+    cluster_old = cluster
+
+    #Loop over storms to find connected storms
+    for stridx in cluster: 
+        conntemp = connTracks[stridx,::] #-1
+        if(contype == "All" and np.nansum(conntemp) > 0):
+            strmstemp = np.where(conntemp > 0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+        elif(contype == "Length" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
+            strmstemp = np.where((conntemp == 1.0) | (conntemp == 3.0))[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+        elif(contype == "Time" and np.nansum(conntemp >= 2.0) > 0):
+            strmstemp = np.where(conntemp >= 2.0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
+        if(contype == "NoLength" and np.nansum((conntemp == 2.0)) > 0):
+            strmstemp = np.where(conntemp == 2.0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
+            
+            
+    #Remove duplicate storms
+    cluster = np.unique(cluster)
+
+    #Check if all storms are counted??
+    if(len(cluster) == len(cluster_old)):
+        if(contype == "All"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] != 0])]
+        elif(contype == "Length"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][(connTracks[strm,:] == 1.0) | (connTracks[strm,:] == 3.0)])]
+        elif(contype == "Time"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] >= 2.0])]
+        elif(contype == "NoLength"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] == 2.0])]
+        else:
+            connTypes = []
+            
+        if(len(cluster) == 1):
+            clusterType = "None"
+        elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Time"
+        elif(all((x == 1.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Length"
+        else:
+            clusterType = "Mixed"
+        
+        return cluster_old, connTypes, clusterType
+    else:
+        #connTypes.extend(list(typetemp))
+        return find_cluster_type3(cluster,connTracks,contype=contype)
+    
+    
+#Recursive function to find uniquely connected cluster of storms + Type of cluster
+def find_cluster_type_dokm(cluster,connTracks,contype="All"):
+    #print("CLustering analysis for the following storms:")
+    #print(cluster)
+    cluster_old = cluster
+
+    #Loop over storms to find connected storms
+    for stridx in cluster: 
+        conntemp = connTracks.getrow(stridx).data #-1
+        #nonzero  = connTracks.getrow(stridx).nonzero()[1]
+        nonzero  = connTracks[stridx,::].nonzero()[1]
+        
+        if(len(conntemp) > 0):    
+            if(contype == "All"):
+                strmstemp = np.where(conntemp > 0)[0]  #+ stridx
+                #typetemp = conntemp[conntemp > 0] 
+                cluster = np.append(cluster,nonzero)
+            elif(contype == "Length" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
+                strmstemp = nonzero[np.where((conntemp == 1.0) | (conntemp == 3.0))[0]]  #+ stridx
+                cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+            elif(contype == "Time" and np.nansum(conntemp >= 2.0) > 0):
+                strmstemp = nonzero[np.where(conntemp >= 2.0)[0]]  
+                cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
+            if(contype == "NoLength" and np.nansum((conntemp == 2.0)) > 0):
+                strmstemp = nonzero[np.where(conntemp == 2.0)[0]]
+                cluster = np.append(cluster,np.array(strmstemp,dtype=int))     
+            
+    #Remove duplicate storms
+    cluster = np.unique(cluster)
+
+    #Check if all storms are counted??
+    if(len(cluster) == len(cluster_old)):
+        '''
+        if(contype == "All"):
+            connTypes = [x for strm in cluster for x in connTracks.getrow(strm).data()]
+        elif(contype == "Length"):
+            connTypes = [x for strm in cluster for x in list(connTracks.getrow(stridx).data() == 1.0) | (connTracks[strm,:] == 3.0)])]
+        elif(contype == "Time"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] >= 2.0])]
+        elif(contype == "NoLength"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] == 2.0])]
+        else:
+            connTypes = []
+            
+        if(len(cluster) == 1):
+            clusterType = "None"
+        elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Time"
+        elif(all((x == 1.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Length"
+        else:
+            clusterType = "Mixed"
+        
+        return cluster_old, connTypes, clusterType
+        '''
+        return cluster_old
+    else:
+        #connTypes.extend(list(typetemp))
+        return find_cluster_type_dokm(cluster,connTracks,contype=contype)
