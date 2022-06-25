@@ -39,7 +39,7 @@ timmeth = "absolute" #"median"
 Rossby_45 = calc_Rossby_radius(lat=45)
 
 str_result = "Results_DJF_ERA5_" 
-outdir = "/home/WUR/weije043/Clusters_Sensitivity/"
+outdir = "Clusters_output/"
 
 #########################
 # Load storm tracks
@@ -79,21 +79,27 @@ str_id = str_id - np.nanmin(str_id) + 1
 
 nrstorms = len(np.unique(str_id))
 
-str_connected   = np.zeros(str_dt.shape)
 
+
+str_connected   = np.zeros(str_dt.shape)
 nrstorms = np.nanmax(str_id)
 
 #Check which year, month, hemisphere belongs storms to
 start = time.time()
-wintstrms = np.zeros(np.nanmax(str_id))
-yrstorms = np.zeros(np.nanmax(str_id))
-mnstorms = np.zeros(np.nanmax(str_id))
-hemstorms = np.full(np.nanmax(str_id),"Undefined")
+
+wintstrms = np.zeros(nrstorms)
+yrstorms = np.zeros(nrstorms)
+mnstorms = np.zeros(nrstorms)
+hemstorms = np.full(nrstorms,"Undefined")
 firstdt = []
 lastdt = []
+
+uniq_ids = np.unique(str_id)
+
 for strid in range(nrstorms):
-	dt_temp = str_dt[str_id == strid + 1]
-	lat_temp = str_lat[str_id == strid + 1]
+    
+	dt_temp = str_dt[str_id == uniq_ids[strid]]
+	lat_temp = str_lat[str_id == uniq_ids[strid]]
 
 	#Check which winter it belongs to
 	tmpyear = dt_temp[0].year
@@ -123,7 +129,7 @@ print(start-end)
 #Months of storm, relative to beginning of 1979
 mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
 refdt = dt(1979,1,1,0,0)
-diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                      
+diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                              
 
 # START CALCULATION OF CLUSTERS
 print("---------------------------------------------")
@@ -156,7 +162,7 @@ for strm1 in range(nrstorms): #range(6500,7000): #
 	#minstidx = np.max([0,strm1 - 250])
 	#maxstidx =  np.min([7777,strm1 + 250])
 	
-	selidxs1 = np.where(str_id == strm1 + 1)
+	selidxs1 = np.where(str_id == uniq_ids[strm1])
 	lats1 = str_lat[selidxs1]	
 	lons1 = str_lon[selidxs1]
 	times1 = str_dt[selidxs1]
@@ -175,7 +181,7 @@ for strm1 in range(nrstorms): #range(6500,7000): #
 	for strm2 in strm2idxs: #range(minstidx,maxstidx)
 				#print("Strm1 :" + str(strm1 + 1) + " Strm2: " + str(strm2 + 1))
 
-				selidxs2 = np.where(str_id == strm2 + 1)
+				selidxs2 = np.where(str_id == uniq_ids[strm2])
 				lats2 = str_lat[selidxs2]
 				lons2 = str_lon[selidxs2] 
 				times2 = str_dt[selidxs2]
@@ -227,9 +233,9 @@ np.fill_diagonal(connTracks,0)
 clusters = []
 maxlength = 1
 
-for stridx in range(np.nanmax(str_id)):
+for stridx in range(nrstorms):
     print(stridx)
-    clusttemp = find_cluster([stridx + 1],connTracks) 
+    clusttemp = find_cluster([stridx],connTracks) 
     if(len(clusttemp) > maxlength):
         maxlength = len(clusttemp)
     clusters.append(clusttemp)
@@ -258,6 +264,7 @@ nrstrmclst_wintNH = np.zeros(len(winters))
 nrdays_wint = np.zeros(len(winters))
 
 test = 0
+'''
 for clustidx in range(len(sorted_clusters)):
     clusttemp = sorted_clusters[clustidx]
 
@@ -277,6 +284,7 @@ for clustidx in range(len(sorted_clusters)):
         if(np.nanmean(str_lat[str_id == clusttemp[0]]) > 0):
             nrclst_wintNH[winters == tmpyear] += 1
             nrstrmclst_wintNH[winters == tmpyear] += len(clusttemp)
+'''
 
 ######################################################
 # Save results
