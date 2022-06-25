@@ -7,13 +7,14 @@ from scipy.ndimage.filters import gaussian_filter
 from datetime import datetime as dt, timedelta as td
 import numpy as np
 import sparse
+from scipy.sparse import dok_matrix
 from numpy import loadtxt
 
 #exec(open("projection.py").read())
 #from dynlib import sphere, cm
 import time
 from numpy import loadtxt
-from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster
+from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm
 
 from timeit import default_timer as timer
 
@@ -40,6 +41,8 @@ Rossby_45 = calc_Rossby_radius(lat=45)
 
 str_result = "Results_DJF_ERA5_" 
 outdir = "Clusters_output/"
+
+frameworkSparse = True #True
 
 #########################
 # Load storm tracks
@@ -142,7 +145,16 @@ print("---------------------------------------------")
 ######################################################
 # Find connected and clustered storms
 #######################################################
-connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+if(frameworkSparse == False):
+    connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+    angleTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+    drTracks  = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+    dtTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+else:
+    connTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
+    angleTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
+    drTracks  = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
+    dtTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
 
 maxdists = []
 maxdistsown = []
@@ -173,7 +185,7 @@ for strm1 in range(nrstorms): #range(6500,7000): #
 	diffdt2  = firstdt[strm1] - lastdt
 
 	#strm2idxs = np.where( (np.abs(diffmon) <= 1) & (hemstorms == hemstorms[strm1]))[0]
-	strm2idxs = np.where((np.arange(nrstorms) >= strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
+	strm2idxs = np.where((np.arange(nrstorms) > strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
 
 	print("Nr strm2: " + str(len(strm2idxs)))
 	#print(strm2idxs)
@@ -227,7 +239,6 @@ for strm1 in range(nrstorms): #range(6500,7000): #
 endtime = timer()
 print(endtime - starttime) # Time in seconds, e.g. 5.38091952400282
 timing = endtime -starttime
-np.fill_diagonal(connTracks,0)
 
 #Find clusters
 clusters = []
@@ -235,7 +246,7 @@ maxlength = 1
 
 for stridx in range(nrstorms):
     print(stridx)
-    clusttemp = find_cluster([stridx],connTracks) 
+    clusttemp = find_cluster_type_dokm([stridx],connTracks,"Length") 
     if(len(clusttemp) > maxlength):
         maxlength = len(clusttemp)
     clusters.append(clusttemp)
