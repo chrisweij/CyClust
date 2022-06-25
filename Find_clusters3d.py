@@ -5,14 +5,8 @@ from scipy.ndimage.filters import gaussian_filter
 #from geopy.distance import great_circle as great_circle_old
 
 from datetime import datetime as dt, timedelta as td
-import matplotlib.dates as mdates 
-
-import dynlib.diag
-import matplotlib 
-matplotlib.use("agg")
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import numpy as np
+import sparse
 from numpy import loadtxt
 
 #exec(open("projection.py").read())
@@ -41,11 +35,6 @@ timthreshs = np.arange(0.25,2.6,0.25)*24.0
 lngthreshs = np.arange(0.6,2.21,0.2)
 distthreshs = np.arange(0.5,1.51,0.1)
 
-#Just one threshold
-#timthreshs =  [30.0] #[1.0]
-#distthreshs = [1.0]
-#lngthreshs = [1.5] #[1.5]
-
 timmeth = "absolute" #"median" 
 Rossby_45 = calc_Rossby_radius(lat=45)
 
@@ -56,8 +45,8 @@ outdir = "/home/WUR/weije043/Clusters_Sensitivity/"
 # Load storm tracks
 #########################
 #Storm tracks file
-st_file = "tracks_NH.txt"
-st_file = "Selected_tracks_1979to2018_0101to1231"
+st_file = "Selected_tracks_2011_2012"
+
 
 if(st_file == "tracks_NH.txt"):
 	nrskip = 1
@@ -144,53 +133,50 @@ mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
 refdt = dt(1979,1,1,0,0)
 diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                      
 
-# START SENSITIVITY EXPERIMENTS
-for distthresh in distthreshs: #[0:1]
-#for lngthresh in lngthreshs:
-	#for distthresh in distthreshs[0:4]:
-	for timthresh in timthreshs: #[0:1]
+# START CALCULATION OF CLUSTERS
+print("---------------------------------------------")
+print("Start checking for:                          ")
+print("Distance threshold = " + str(distthresh))
+print("Time threshold = " + str(timthresh))
+print("Length threshold = " + str(lngthresh))
+print("---------------------------------------------")
 
-		#Convert timthresh to td object 
-		timthresh_dt = td(hours=timthresh)
+######################################################
+# Find connected and clustered storms
+#######################################################
+connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
 
-	#for timthresh in timthreshs:
-		print("---------------------------------------------")
-		print("Start checking for:                          ")
-		print("Distance threshold = " + str(distthresh))
-		print("Time threshold = " + str(timthresh))
-		print("Length threshold = " + str(lngthresh))
-		print("---------------------------------------------")
+maxdists = []
+maxdistsown = []
+angles = []
+anglesClust = []
+clusterTypes = []
+clusterTypes2 = []
+angleTypes = []
 
-		######################################################
-		# Find connected and clustered storms
-		#######################################################
-		connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+starttime = timer()
+for strm1 in range(nrstorms): #range(6500,7000): # 
+	print("Strm1 :" + str(strm1 + 1))
+	#minstidx = np.max([0,strm1 - 250])
+	#maxstidx =  np.min([7777,strm1 + 250])
+	
+	selidxs1 = np.where(str_id == strm1 + 1)
+	lats1 = str_lat[selidxs1]	
+	lons1 = str_lon[selidxs1]
+	times1 = str_dt[selidxs1]
+    
+    #Only check if the storm is in the current month, or one after or before it, in the same hemisphere. 
+	#diffmon = mnstorms_rel[strm1] - mnstorms_rel
+	diffdt1  = firstdt - lastdt[strm1]
+	diffdt2  = firstdt[strm1] - lastdt
 
-		maxdists = []
-		maxdistsown = []
-		starttime = timer()
-		for strm1 in range(nrstorms): #range(6500,7000): # 
-			print("Strm1 :" + str(strm1 + 1))
-			#minstidx = np.max([0,strm1 - 250])
-			#maxstidx =  np.min([7777,strm1 + 250])
-			
-			selidxs1 = np.where(str_id == strm1 + 1)
-			lats1 = str_lat[selidxs1]	
-			lons1 = str_lon[selidxs1]
-			times1 = str_dt[selidxs1]
+	#strm2idxs = np.where( (np.abs(diffmon) <= 1) & (hemstorms == hemstorms[strm1]))[0]
+	strm2idxs = np.where((np.arange(nrstorms) >= strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
 
-                        #Only check if the storm is in the current month, or one after or before it, in the same hemisphere. 
-			#diffmon = mnstorms_rel[strm1] - mnstorms_rel
-			diffdt1  = firstdt - lastdt[strm1]
-			diffdt2  = firstdt[strm1] - lastdt
+	print("Nr strm2: " + str(len(strm2idxs)))
+	#print(strm2idxs)
 
-			#strm2idxs = np.where( (np.abs(diffmon) <= 1) & (hemstorms == hemstorms[strm1]))[0]
-			strm2idxs = np.where((np.arange(nrstorms) >= strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
-
-			print("Nr strm2: " + str(len(strm2idxs)))
-			#print(strm2idxs)
-
-			for strm2 in strm2idxs: #range(minstidx,maxstidx)
+	for strm2 in strm2idxs: #range(minstidx,maxstidx)
 				#print("Strm1 :" + str(strm1 + 1) + " Strm2: " + str(strm2 + 1))
 
 				selidxs2 = np.where(str_id == strm2 + 1)
@@ -257,70 +243,49 @@ for distthresh in distthreshs: #[0:1]
 		#from operator import itemgetter
 		sorted_clusters =  sorted(unique_clusters)
 
-		######################################################
-		# Statistics
-		######################################################
+######################################################
+# Statistics --> TODO: Move to different file
+######################################################
 
-		#PDF with length of clusters
-		lengthclust = np.zeros(maxlength)
-		lengths     = []
+#PDF with length of clusters
+lengthclust = np.zeros(maxlength)
+lengths     = []
 
-		#Clusters per winter 
-		winters = np.arange(1979,2016)
-		nrclst_wint = np.zeros(len(winters))
-		nrclst_wintNH = np.zeros(len(winters))
-		nrstrm_wint = np.zeros(len(winters))
-		nrstrmclst_wint = np.zeros(len(winters))
-		nrstrm_wintNH = np.zeros(len(winters))
-		nrstrmclst_wintNH = np.zeros(len(winters))
-		nrdays_wint = np.zeros(len(winters))
+#Clusters per winter 
+winters = np.arange(1979,2016)
+nrclst_wint = np.zeros(len(winters))
+nrclst_wintNH = np.zeros(len(winters))
+nrstrm_wint = np.zeros(len(winters))
+nrstrmclst_wint = np.zeros(len(winters))
+nrstrm_wintNH = np.zeros(len(winters))
+nrstrmclst_wintNH = np.zeros(len(winters))
+nrdays_wint = np.zeros(len(winters))
 
-		test = 0
-		for clustidx in range(len(sorted_clusters)):
-			clusttemp = sorted_clusters[clustidx]
+test = 0
+for clustidx in range(len(sorted_clusters)):
+    clusttemp = sorted_clusters[clustidx]
 
-			lengths.append(len(clusttemp))
-			lengthclust[len(clusttemp)-1] += 1
+    lengths.append(len(clusttemp))
+    lengthclust[len(clusttemp)-1] += 1
 
-			#Check which winter it belongs to
-			tmpyear = str_dt[str_id == clusttemp[0]][0].year
-			tmpmonth = str_dt[str_id == clusttemp[0]][0].month
-			if(tmpmonth < 11):
-				tmpyear = tmpyear - 1
-			
-			nrstrm_wint[winters == tmpyear] += len(clusttemp)
-			if(len(clusttemp) > 1):
-				nrclst_wint[winters == tmpyear] += 1
-				nrstrmclst_wint[winters == tmpyear] += len(clusttemp)
-				if(np.nanmean(str_lat[str_id == clusttemp[0]]) > 0):
-					nrclst_wintNH[winters == tmpyear] += 1
-					nrstrmclst_wintNH[winters == tmpyear] += len(clusttemp)
+    #Check which winter it belongs to
+    tmpyear = str_dt[str_id == clusttemp[0]][0].year
+    tmpmonth = str_dt[str_id == clusttemp[0]][0].month
+    if(tmpmonth < 11):
+        tmpyear = tmpyear - 1
 
-		######################################################
-		# Save results
-		######################################################
-		formatter =  "{:1.1f}"
-		outfile = outdir + str_result + formatter.format(distthresh) + "_tim_" + formatter.format(timthresh) + "_length_" + formatter.format(lngthresh)
-		np.savez(outfile, sorted_clusters=sorted_clusters, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,maxdists=np.array(maxdists),str_connected = str_connected)
+    nrstrm_wint[winters == tmpyear] += len(clusttemp)
+    if(len(clusttemp) > 1):
+        nrclst_wint[winters == tmpyear] += 1
+        nrstrmclst_wint[winters == tmpyear] += len(clusttemp)
+        if(np.nanmean(str_lat[str_id == clusttemp[0]]) > 0):
+            nrclst_wintNH[winters == tmpyear] += 1
+            nrstrmclst_wintNH[winters == tmpyear] += len(clusttemp)
 
+######################################################
+# Save results
+######################################################
+formatter =  "{:1.1f}"
+outfile = outdir + str_result + formatter.format(distthresh) + "_tim_" + formatter.format(timthresh) + "_length_" + formatter.format(lngthresh)
+np.savez(outfile, sorted_clusters=sorted_clusters, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,maxdists=np.array(maxdists),str_connected = str_connected)
 
-"""
-#NH fraction
-frac_mon_NH = np.zeros([12])
-frac_mon_NHatlantic = np.zeros([12])
-frac_mon_NHpacific = np.zeros([12])
-frac_mon_SH = np.zeros([12])
-for mn in range(12):
-	frac_mon_NH[mn] = np.nansum(( str_connected > 0) & (str_lat > 0) & (str_month == mn + 1))/np.nansum((str_lat > 0) &  (str_month == mn + 1)) 
-
-#SH fraction
-for mn in range(12):
-	frac_mon_SH[mn] = np.nansum(( str_connected > 0) & (str_lat < 0)  & (str_month == mn + 1))/np.nansum((str_lat < 0) &  (str_month == mn + 1)) 
-
-#Atlantic NH fraction
-for mn in range(12):
-	frac_mon_NHatlantic[mn] = np.nansum(( str_connected > 0) & (str_lat > 0) & (str_lon > 280) & (str_month == mn + 1))/np.nansum((str_lat > 0) & (str_lon > 280) & (str_month == mn + 1)) 
-
-#Pacific fraction
-
-"""
