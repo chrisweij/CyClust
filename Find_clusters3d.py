@@ -146,6 +146,10 @@ clusterTypes = []
 clusterTypes2 = []
 angleTypes = []
 
+
+#Convert timthresh to td object 
+timthresh_dt = td(hours=timthresh)
+
 starttime = timer()
 for strm1 in range(nrstorms): #range(6500,7000): # 
 	print("Strm1 :" + str(strm1 + 1))
