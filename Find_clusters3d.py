@@ -222,26 +222,26 @@ for strm1 in range(nrstorms): #range(6500,7000): #
 						str_connected[selidxs1] = str_contemp1
 						str_connected[selidxs2] = str_contemp2
 		
-		endtime = timer()				
-		print(endtime - starttime) # Time in seconds, e.g. 5.38091952400282
-		timing = endtime -starttime
-		np.fill_diagonal(connTracks,0)
+endtime = timer()
+print(endtime - starttime) # Time in seconds, e.g. 5.38091952400282
+timing = endtime -starttime
+np.fill_diagonal(connTracks,0)
 
-		#Find clusters
-		clusters = []
-		maxlength = 1
+#Find clusters
+clusters = []
+maxlength = 1
 
-		for stridx in range(np.nanmax(str_id)):
-			print(stridx)
-			clusttemp = find_cluster([stridx + 1],connTracks) 
-			if(len(clusttemp) > maxlength):
-				maxlength = len(clusttemp)
-			clusters.append(clusttemp)
+for stridx in range(np.nanmax(str_id)):
+    print(stridx)
+    clusttemp = find_cluster([stridx + 1],connTracks) 
+    if(len(clusttemp) > maxlength):
+        maxlength = len(clusttemp)
+    clusters.append(clusttemp)
 
-		#Delete duplicates and sort on the first number in cluster:
-		unique_clusters = [list(x) for x in set(tuple(x) for x in clusters)]
-		#from operator import itemgetter
-		sorted_clusters =  sorted(unique_clusters)
+#Delete duplicates and sort on the first number in cluster:
+unique_clusters = [list(x) for x in set(tuple(x) for x in clusters)]
+#from operator import itemgetter
+sorted_clusters =  sorted(unique_clusters)
 
 ######################################################
 # Statistics --> TODO: Move to different file
