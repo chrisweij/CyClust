@@ -18,6 +18,16 @@ def unnest(l):
     l_unnest = [item for sublist in l for item in sublist]
     return l_unnest
 
+    
+def compute_M(data):
+    cols = np.arange(data.size)
+    return csr_matrix((cols, (data.ravel(), cols)),
+                      shape=(data.max() + 1, data.size))
+
+def get_indices_sparse(data):
+    M = compute_M(data)
+    return [np.unravel_index(row.data, data.shape) for row in M]
+
 ##################################################
 # FUNCTIONS TO COMPARE DISTANCES
 ###################################################
