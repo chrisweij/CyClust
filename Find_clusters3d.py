@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8
 
-from scipy.ndimage.filters import gaussian_filter
 #from geopy.distance import great_circle as great_circle_old
 
 from datetime import datetime as dt, timedelta as td
 import numpy as np
-import sparse
-from scipy.sparse import dok_matrix
 from numpy import loadtxt
 
-#exec(open("projection.py").read())
-#from dynlib import sphere, cm
+import sparse
+from scipy.sparse import dok_matrix
 import time
-from numpy import loadtxt
-from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest
+
+from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest, get_indices_sparse
 
 from timeit import default_timer as timer
 
@@ -59,7 +56,7 @@ str_result = "EI_2011_2012"
 #Storm tracks file
 st_file = "Selected_tracks_2011_2012"
 
-nrskip = 0
+nrskip = 1
 str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
 str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
 str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
@@ -90,11 +87,18 @@ str_connected   = np.zeros(str_dt.shape)
 str_id = str_id - np.nanmin(str_id) + 1
 
 nrstorms = len(np.unique(str_id))
-
-
-
 str_connected   = np.zeros(str_dt.shape)
 nrstorms = np.nanmax(str_id)
+
+#########################
+# Get indices of storms
+#########################
+uniq_ids = np.unique(str_id)
+ids_storms = get_indices_sparse(str_id)
+
+#########################
+# Preprocess storm tracks
+#########################
 
 #Check which year, month, hemisphere belongs storms to
 start = time.time()
@@ -106,12 +110,9 @@ hemstorms = np.full(nrstorms,"Undefined")
 firstdt = []
 lastdt = []
 
-uniq_ids = np.unique(str_id)
-
-for strid in range(nrstorms):
-    
-	dt_temp = str_dt[str_id == uniq_ids[strid]]
-	lat_temp = str_lat[str_id == uniq_ids[strid]]
+for strid in range(nrstorms):    
+	dt_temp = str_dt[ids_storms[uniq_ids[strid]]]
+	lat_temp = str_lat[ids_storms[uniq_ids[strid]]]
 
 	#Check which winter it belongs to
 	tmpyear = dt_temp[0].year
@@ -169,7 +170,7 @@ else:
     dtTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
 
 
-    maxdists = []
+maxdists = []
 maxdistsown = []
 angles = []
 anglesClust = []
@@ -180,7 +181,8 @@ angleTypes = []
 starttime = timer()
 for strm1 in range(nrstorms): #range(nrstorms): #[1]: # #range(6500,7000): # 
     #print("Strm1 :" + str(uniq_ids[strm1]))
-    selidxs1 = np.where(str_id == uniq_ids[strm1])
+    selidxs1 = ids_storms[uniq_ids[strm1]] #np.where(str_id == uniq_ids[strm1])
+    
     lats1 = str_lat[selidxs1]	
     #print(lats1)
     lons1 = str_lon[selidxs1]
@@ -198,7 +200,7 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: # #range(6500,7000): #
     for strm2 in strm2idxs: #[5]: #strm2idxs: #range(minstidx,maxstidx)
         #print("Strm1 :" + str(strm1 + 1) + " Strm2: " + str(strm2 + 1))
 
-        selidxs2 = np.where(str_id == uniq_ids[strm2])
+        selidxs2 = ids_storms[uniq_ids[strm2]] #np.where(str_id == uniq_ids[strm2])
         lats2 = str_lat[selidxs2]
         lons2 = str_lon[selidxs2] 
         times2 = str_dt[selidxs2]
