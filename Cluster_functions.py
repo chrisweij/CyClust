@@ -327,12 +327,12 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
         if(Options["connSpaceOrTime"] == True):
             if((maxtime > (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
                 if(maxtime > (Options["timlngthresh"]*6.0)):
-                    conn += conn + 2
-                    conn += conn + 2
+                    conn += 2
+                    conn += 2
                     
                 if(maxdist >= Options["lngthresh"]):
-                    conn += conn + 1
-                    conn += conn + 1   
+                    conn += 1
+                    conn += 1   
                                 
                 str_contemp1[pntselect] = 1.0
                 str_contemp2[pntselect2] = 1.0
