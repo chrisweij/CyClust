@@ -328,11 +328,9 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             if((maxtime > (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
                 if(maxtime > (Options["timlngthresh"]*6.0)):
                     conn += 2
-                    conn += 2
                     
                 if(maxdist >= Options["lngthresh"]):
                     conn += 1
-                    conn += 1   
                                 
                 str_contemp1[pntselect] = 1.0
                 str_contemp2[pntselect2] = 1.0
@@ -352,7 +350,6 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
         elif(Options["connSpaceTime"] == True):
             if(maxtimspacediff > 1.0):
                 conn = 1
-                conn = 1
 
                 str_contemp1[pntselect] = 1.0
                 str_contemp2[pntselect2] = 1.0
@@ -367,7 +364,7 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
         elif(Options["connPairs"] == True):        
                 if(nrPairs>= minPairs):
                     conn = 1
-                    conn = 1
+  
                     str_contemp1[pntselect] = 1.0
                     str_contemp2[pntselect2] = 1.0
 
@@ -399,7 +396,6 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
                     TestLength = False
             
             if((test1 >= Options["timlngthresh"]) & (test2 >= Options["timlngthresh"]) & TestLength):
-                conn = 1
                 conn = 1
  
                 str_contemp1[pntselect] = 1.0
@@ -433,7 +429,6 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
                 
             if(maxdist >= Options["lngthresh"]): #*Rossby_45*corrfac
                 #print("Strm2: " + str(strm2 + 1) + " Max dist: " + str(maxdist) + " Trck1: " + str(np.nanmax(owndists)) + " Trck2: " + str(np.nanmax(owndists2)))
-                conn = 1
                 conn = 1
 
                 str_contemp1[pntselect] = 1.0 
