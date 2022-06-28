@@ -11,7 +11,7 @@ import sparse
 from scipy.sparse import dok_matrix
 import time
 
-from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest, get_indices_sparse
+from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest, get_indices_sparse, find_cluster_type, find_cluster_type3
 
 from timeit import default_timer as timer
 

@@ -3,7 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 import numpy as np 
 import math
-
+from scipy.sparse import csr_matrix
 
 
 def unnest(l):
