@@ -54,6 +54,7 @@ Options = {
 #########################
 #Storm tracks file
 st_file = "Selected_tracks_2011_2012"
+st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
 
 nrskip = 1
 str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
@@ -180,7 +181,10 @@ timthresh_dt = td(hours=Options["timthresh"])
 
 
 starttime = timer()
-for strm1 in range(nrstorms): #range(nrstorms): #[1]: # #range(6500,7000): # 
+for strm1 in range(nrstorms): #range(nrstorms): #[1]: # 
+    if(strm1%100 == 0):
+        print(strm1)
+    #range(6500,7000): # 
     #print("Strm1 :" + str(uniq_ids[strm1]))
     selidxs1 = ids_storms[uniq_ids[strm1]] #np.where(str_id == uniq_ids[strm1])
     
