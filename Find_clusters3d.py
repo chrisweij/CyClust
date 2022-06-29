@@ -12,6 +12,8 @@ from scipy.sparse import dok_matrix
 import time
 from timeit import default_timer as timer
 
+from joblib import Parallel, delayed
+
 #########################
 # Options
 #########################
@@ -36,7 +38,7 @@ Options = {
 "connPairs" : False,
 "excludeLong" : False, #Exclude other type
 "distmeth" : "AlongTracksDirect", #"MaxDist" #"AlongTracks" "AlongTrackDirect"
-"frameworkSparse" : False, #True
+"frameworkSparse" : True, #True
 
 # Output directory
 "outdir" : "Results/", 
@@ -54,7 +56,7 @@ Options = {
 #########################
 #Storm tracks file
 st_file = "Selected_tracks_2011_2012"
-st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
+#st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
 
 nrskip = 1
 str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
@@ -175,6 +177,30 @@ print("---------------------------------------------")
 #Convert timthresh to td object 
 timthresh_dt = td(hours=Options["timthresh"])
 
+
+def get_andcheck(strm2,connTracks,angleTracks,dtTracks,drTracks):
+    selidxs2 = ids_storms[uniq_ids[strm2]]
+    
+    lats2 = str_lat[selidxs2]
+    lons2 = str_lon[selidxs2] 
+    times2 = str_dt[selidxs2]
+
+    conn, angle, dt, dr, strConn1, strConn2  =\
+        connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
+    
+    #print(connTracks.flags)
+        
+    #connTracks[strm2,strm1] = conn
+    #connTracks[strm1,strm2] = conn
+    #angleTracks[strm1,strm2] = angle
+    #dtTracks[strm1,strm2] = dt
+    #drTracks[strm1,strm2] = dr
+    
+    #str_connected[selidxs1] = strConn1
+    #str_connected[selidxs2] = strConn2
+    
+    return strm2, conn, dt, dr, angle
+
 ######################################################
 # Find connected and clustered storms
 #######################################################
@@ -201,28 +227,8 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
     strm2idxs = np.where((np.arange(nrstorms) > strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
     #print("Nr strm2: " + str(len(strm2idxs)))
     
-    for strm2 in strm2idxs: #[5]: #strm2idxs: #range(minstidx,maxstidx)
-        #print("Strm1 :" + str(strm1 + 1) + " Strm2: " + str(strm2 + 1))
 
-        selidxs2 = ids_storms[uniq_ids[strm2]] #np.where(str_id == uniq_ids[strm2])
-        lats2 = str_lat[selidxs2]
-        lons2 = str_lon[selidxs2] 
-        times2 = str_dt[selidxs2]
-        #print(lats2)
-
-        conn, angle, dt, dr, strConn1, strConn2  =\
-                        connect_cyclones(lons1,lats1,times1,
-                                                lons2,lats2,times2,
-                                                Options)
-        
-        connTracks[strm2,strm1] = conn
-        connTracks[strm1,strm2] = conn
-        angleTracks[strm1,strm2] = angle
-        dtTracks[strm1,strm2] = dt
-        drTracks[strm1,strm2] = dr
-        
-        str_connected[selidxs1] = strConn1
-        str_connected[selidxs2] = strConn2
+    test = Parallel(n_jobs=-1,max_nbytes='1M')(delayed(get_andcheck)(strm2,connTracks,angleTracks,dtTracks,drTracks) for strm2 in strm2idxs)
             
     
                 
