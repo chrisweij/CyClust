@@ -178,7 +178,7 @@ print("---------------------------------------------")
 timthresh_dt = td(hours=Options["timthresh"])
 
 
-def get_andcheck(strm2,connTracks,angleTracks,dtTracks,drTracks):
+def get_andcheck(strm2,str_lat,str_lon,str_dt,ids_storms): #,connTracks,angleTracks,dtTracks,drTracks):
     selidxs2 = ids_storms[uniq_ids[strm2]]
     
     lats2 = str_lat[selidxs2]
@@ -228,8 +228,8 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
     #print("Nr strm2: " + str(len(strm2idxs)))
     
 
-    test = Parallel(n_jobs=-1,max_nbytes='1M')(delayed(get_andcheck)(strm2,connTracks,angleTracks,dtTracks,drTracks) for strm2 in strm2idxs)
-            
+    test = Parallel(n_jobs=2,max_nbytes='1M')(delayed(get_andcheck)(strm2,str_lat,str_lon,str_dt,ids_storms) for strm2 in strm2idxs)
+    #,connTracks,angleTracks,dtTracks,drTracks        
     
                 
 endtime = timer()
