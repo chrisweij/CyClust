@@ -5,10 +5,6 @@ import numpy as np
 import math
 from scipy.sparse import csr_matrix
 
-
-
-
-
 maxdists = []
 maxdistsown = []
 angles = []
@@ -21,7 +17,6 @@ angleTypes = []
 ##################################################
 # General FUNCTIONS
 ###################################################
-
 
 def unnest(l):
     '''
@@ -44,6 +39,22 @@ def compute_M(data):
 def get_indices_sparse(data):
     M = compute_M(data)
     return [np.unravel_index(row.data, data.shape) for row in M]
+
+#Symmetrize matrix
+def symmetrize(a):
+    """
+    Return a symmetrized version of NumPy array a.
+
+    Values 0 are replaced by the array value at the symmetric
+    position (with respect to the diagonal), i.e. if a_ij = 0,
+    then the returned array a' is such that a'_ij = a_ji.
+
+    Diagonal values are left untouched.
+
+    a -- square NumPy array, such that a_ij = 0 or a_ji = 0, 
+    for i != j.
+    """
+    return a + a.T - numpy.diag(a.diagonal())
 
 ##################################################
 # FUNCTIONS TO COMPARE DISTANCES
@@ -127,23 +138,6 @@ def great_circle_np(lat1, long1, lat2, long2,dist="kilometers"):
     # Remember to multiply arc by the radius of the earth 
     # in your favorite set of units to get length.
     return dist
-
-
-#Symmetrize matrix
-def symmetrize(a):
-    """
-    Return a symmetrized version of NumPy array a.
-
-    Values 0 are replaced by the array value at the symmetric
-    position (with respect to the diagonal), i.e. if a_ij = 0,
-    then the returned array a' is such that a'_ij = a_ji.
-
-    Diagonal values are left untouched.
-
-    a -- square NumPy array, such that a_ij = 0 or a_ji = 0, 
-    for i != j.
-    """
-    return a + a.T - numpy.diag(a.diagonal())
 
 #Compute the spatial and distance between two tracks
 def compare_trks(x_1,y_1,t_1,x_2,y_2,t_2):
@@ -235,9 +229,7 @@ def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
 			else:
 				#print("Option 2:")
 				avelon = (np.nanmax([x_2[idx2],x_1[idx1]]) + diff2/2.0)%360
-			#print("Lat 1: " + str(y_1[idx1]) + " Lat 2: " + str(y_2[idx2]) + " Ave: " + str(avelat))
-			#print("Lon 1: " + str(x_1[idx1]) + " Lon 2: " + str(x_2[idx2]) + " Ave: " + str(avelon))
-			#print(str(np.abs((x_2[idx2] - x_1[idx1]))) + " " +  str((360 - x_1[idx1] + x_2[idx2])%360))
+
 
 			gctemp = great_circle(y_1[idx1],x_1[idx1],y_2[idx2],x_2[idx2])
 			corrfac = np.abs(calc_Rossby_radius(lat=avelat)) #/calc_Rossby_radius(lat=45))
@@ -250,13 +242,12 @@ def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
 			latidx = np.argmin(np.abs(lats - avelat))
 			lonidx = np.argmin(np.abs(lons - avelon))
 
-			#print("Closest Lat: " + str(lats[latidx]))
-			#print("Closest Lon: " + str(lons[lonidx]))
 			timdiff[idx1,idx2] = dttemp/(median[latidx,lonidx]*6.0)
 	return dist, timdiff
-	
-#def connect_tracks
 
+
+# TO DO: Add description
+# TO DO: Clean up of code (not all options are necessary anymore)
 def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
                      Options):
     
@@ -495,9 +486,9 @@ def find_cluster_type(cluster,connTracks):
     else:
         #connTypes.extend(list(typetemp))
         return find_cluster_type(cluster,connTracks)
-        
-   
-    
+           
+
+# TO DO: Check if function is still necessary
 def find_cluster_type2(cluster,connTracks,angleTracks):
     #print("CLustering analysis for the following storms:")
     #print(cluster)
@@ -544,8 +535,7 @@ def find_cluster_type2(cluster,connTracks,angleTracks):
         #connTypes.extend(list(typetemp))
         return find_cluster_type2(cluster,connTracks,angleTracks)
     
-    
-    
+
 #Recursive function to find uniquely connected cluster of storms + Type of cluster
 def find_cluster_type3(cluster,connTracks,contype="All"):
     #print("CLustering analysis for the following storms:")
