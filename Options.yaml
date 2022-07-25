@@ -1,0 +1,29 @@
+#1. Distance criterium
+"distthresh" : 1.0 #1000.0,
+
+#2. Time criterium
+"timthresh" : 36.0
+
+#3. Length/Time criterium 
+"lngthresh" : 1.5 #1.5 #2.0 #calc_Rossby_radius(lat=45)*2.0 # 1000.0
+"timlngthresh" : 6
+"minPairs" : 24
+
+# Options
+"timmeth" : "absolute"
+"timspace" : False  #Use a combined Time-Space criterium 
+"connTime" : False  #Connect on lengths
+"connSpaceTime" : False
+"connSpaceOrTime" : True
+"connPairs" : False,
+"excludeLong" : False #Exclude other type
+"distmeth" : "AlongTracksDirect" #"MaxDist" #"AlongTracks" "AlongTrackDirect"
+"frameworkSparse" : False #True
+
+# Output directory
+"outdir" : "Results/"
+
+# Minimum of nr. of storms in a "family"
+"minstorms" : 3
+"outdir" : "Clusters_output/"
+"str_result" : "EI_2011_2012"

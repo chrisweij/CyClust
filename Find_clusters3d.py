@@ -10,10 +10,15 @@ import sparse
 from scipy.sparse import dok_matrix
 import time
 from timeit import default_timer as timer
+import yaml
+
+with open("Options.yaml") as f:
+    Options = yaml.safe_load(f)
 
 #########################
 # Options
 #########################
+'''
 Options = {
 #1. Distance criterium
 "distthresh" : 1.0, #1000.0,
@@ -45,13 +50,13 @@ Options = {
 "outdir" : "Clusters_output/",
 "str_result" : "EI_2011_2012"
 }
-
+'''
 #########################
 # Load storm tracks --> TO DO: Move to function
 #########################
 #Storm tracks file
 st_file = "Selected_tracks_2011_2012"
-st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
+#st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
 
 nrskip = 1
 str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
@@ -310,5 +315,5 @@ sorted_clusters_nolength = sorted(unnest(sorted_subclusters_nolength))
 formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
 
-np.savez(outfile, sorted_clusters=sorted_clusters, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,maxdists=np.array(maxdists),str_connected = str_connected)
+np.savez(outfile, sorted_clusters=sorted_clusters, maxdists=np.array(maxdists),str_connected = str_connected)
 

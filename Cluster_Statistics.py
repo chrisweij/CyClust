@@ -5,7 +5,9 @@ from datetime import datetime as dt, timedelta as td
 import numpy as np
 from numpy import loadtxt
 
-
+with open("Options.yaml") as f:
+    Options = yaml.safe_load(f)
+    
 #########################
 # Load storm tracks
 #########################
@@ -97,7 +99,7 @@ for clustidx in range(len(sorted_clusters)):
             nrstrmclst_wintNH[winters == tmpyear] += len(clusttemp)
 
 
-
 ######################################################
 # Save statistics in a file
 ######################################################
+#lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,
