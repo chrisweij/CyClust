@@ -2,7 +2,6 @@
 # -*- encoding: utf-8
 
 #from geopy.distance import great_circle as great_circle_old
-
 from datetime import datetime as dt, timedelta as td
 import numpy as np
 from numpy import loadtxt
@@ -47,10 +46,8 @@ Options = {
 "str_result" : "EI_2011_2012"
 }
 
-
-
 #########################
-# Load storm tracks
+# Load storm tracks --> TO DO: Move to function
 #########################
 #Storm tracks file
 st_file = "Selected_tracks_2011_2012"
@@ -90,11 +87,9 @@ nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
 nrstorms = np.nanmax(str_id)
 
-
 #########################
 # Define result arrays
 #########################
-
 
 if(Options["frameworkSparse"] == False):
     connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
@@ -179,7 +174,6 @@ timthresh_dt = td(hours=Options["timthresh"])
 # Find connected and clustered storms
 #######################################################
 
-
 starttime = timer()
 for strm1 in range(nrstorms): #range(nrstorms): #[1]: # 
     if(strm1%100 == 0):
@@ -223,9 +217,7 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
         
         str_connected[selidxs1] = strConn1
         str_connected[selidxs2] = strConn2
-            
-    
-                
+                     
 endtime = timer()
 print(endtime - starttime) # Time in seconds, e.g. 5.38091952400282
 timing = endtime -starttime
@@ -263,7 +255,6 @@ for stridx in range(nrstorms):
     #clusterTypes2.append(clusterType2)
     #angleTypes.append(angleType)
     
-    
 #Delete duplicates and sort on the first number in clusters:
 unique_clusters = [list(x) for x in set(tuple(x) for x in clusters)]
 
@@ -290,7 +281,6 @@ for cluster in sorted_clusters:
         else:
             clusttemp, connTypes, clusterType = find_cluster_type3([stridx - 1],connTracks,contype="Length")
 
-
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
         subclusters_length.append(clusttemp)
         
@@ -313,55 +303,12 @@ for cluster in sorted_clusters:
     
 sorted_clusters_length = sorted(unnest(sorted_subclusters_length))
 sorted_clusters_nolength = sorted(unnest(sorted_subclusters_nolength))
-#sorted_clusters = sorted_clusters_length
-
-######################################################
-# Statistics --> TODO: Move to different file
-######################################################
-
-#PDF with length of clusters
-lengthclust = np.zeros(maxlength)
-lengths     = []
-
-#Clusters per winter 
-winters = np.arange(1979,2016)
-nrclst_wint = np.zeros(len(winters))
-nrclst_wintNH = np.zeros(len(winters))
-nrstrm_wint = np.zeros(len(winters))
-nrstrmclst_wint = np.zeros(len(winters))
-nrstrm_wintNH = np.zeros(len(winters))
-nrstrmclst_wintNH = np.zeros(len(winters))
-nrdays_wint = np.zeros(len(winters))
-
-test = 0
-'''
-for clustidx in range(len(sorted_clusters)):
-    clusttemp = sorted_clusters[clustidx]
-
-    lengths.append(len(clusttemp))
-    lengthclust[len(clusttemp)-1] += 1
-
-    #Check which winter it belongs to
-    tmpyear = str_dt[str_id == clusttemp[0]][0].year
-    tmpmonth = str_dt[str_id == clusttemp[0]][0].month
-    if(tmpmonth < 11):
-        tmpyear = tmpyear - 1
-
-    nrstrm_wint[winters == tmpyear] += len(clusttemp)
-    if(len(clusttemp) > 1):
-        nrclst_wint[winters == tmpyear] += 1
-        nrstrmclst_wint[winters == tmpyear] += len(clusttemp)
-        if(np.nanmean(str_lat[str_id == clusttemp[0]]) > 0):
-            nrclst_wintNH[winters == tmpyear] += 1
-            nrstrmclst_wintNH[winters == tmpyear] += len(clusttemp)
-'''
 
 ######################################################
 # Save results
 ######################################################
 formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
-
 
 np.savez(outfile, sorted_clusters=sorted_clusters, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,maxdists=np.array(maxdists),str_connected = str_connected)
 
