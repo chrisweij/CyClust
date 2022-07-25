@@ -4,6 +4,7 @@
 from datetime import datetime as dt, timedelta as td
 import numpy as np
 from numpy import loadtxt
+import yaml
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
