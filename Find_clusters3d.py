@@ -88,7 +88,6 @@ ids_storms = get_indices_sparse(str_id)
 #Check which year, month, hemisphere belongs storms to
 start = time.time()
 
-wintstrms = np.zeros(nrstorms)
 yrstorms = np.zeros(nrstorms)
 mnstorms = np.zeros(nrstorms)
 hemstorms = np.full(nrstorms,"Undefined")
@@ -104,10 +103,6 @@ for strid in range(nrstorms):
 	tmpmonth = dt_temp[0].month
 	yrstorms[strid] = tmpyear
 	mnstorms[strid] = tmpmonth
-
-	if(tmpmonth < 11):
-		tmpyear = tmpyear - 1
-	wintstrms[strid] = tmpyear
 
 	#Save the first and last dt
 	firstdt.append(dt_temp[0])
@@ -127,7 +122,7 @@ print(start-end)
 #Months of storm, relative to beginning of 1979
 mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
 refdt = dt(1979,1,1,0,0)
-diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                              
+diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                         
 # START CALCULATION OF CLUSTERS
 print("---------------------------------------------")
 print("Start checking for:                          ")
@@ -146,13 +141,11 @@ timthresh_dt = td(hours=Options["timthresh"])
 starttime = timer()
 for strm1 in range(nrstorms): #range(nrstorms): #[1]: # 
     if(strm1%100 == 0):
-        print(strm1)
-    #range(6500,7000): # 
+        print(strm1) 
     #print("Strm1 :" + str(uniq_ids[strm1]))
     selidxs1 = ids_storms[uniq_ids[strm1]] #np.where(str_id == uniq_ids[strm1])
     
     lats1 = str_lat[selidxs1]	
-    #print(lats1)
     lons1 = str_lon[selidxs1]
     times1 = str_dt[selidxs1]
     
@@ -171,7 +164,6 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
         lats2 = str_lat[selidxs2]
         lons2 = str_lon[selidxs2] 
         times2 = str_dt[selidxs2]
-        #print(lats2)
 
         conn, angle, dt, dr, strConn1, strConn2  =\
                         connect_cyclones(lons1,lats1,times1,
