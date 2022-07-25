@@ -59,6 +59,49 @@ outfile = "Clusters_output/Results_DJF_NH_2011_2012_1.0_tim_36.0_length_1.5"
 Results = np.load(outfile)
 sorted_clusters = Results["sorted_clusters"]
 
+#########################
+# Preprocess storm tracks
+#########################
+
+#Check which year, month, hemisphere belongs storms to
+start = time.time()
+
+yrstorms = np.zeros(nrstorms)
+mnstorms = np.zeros(nrstorms)
+hemstorms = np.full(nrstorms,"Undefined")
+firstdt = []
+lastdt = []
+
+for strid in range(nrstorms):    
+	dt_temp = str_dt[ids_storms[uniq_ids[strid]]]
+	lat_temp = str_lat[ids_storms[uniq_ids[strid]]]
+
+	#Check which winter it belongs to
+	tmpyear = dt_temp[0].year
+	tmpmonth = dt_temp[0].month
+	yrstorms[strid] = tmpyear
+	mnstorms[strid] = tmpmonth
+
+	#Save the first and last dt
+	firstdt.append(dt_temp[0])
+	lastdt.append(dt_temp[-1])
+
+	#Check if the storm is in the NH or SH
+	if(np.nanmean(lat_temp) > 0):
+		hemstorms[strid] = "NH"
+	elif(np.nanmean(lat_temp) < 0):
+		hemstorms[strid] = "SH"
+
+end = time.time()
+firstdt = np.array(firstdt)
+lastdt = np.array(lastdt)
+print(start-end)
+
+#Months of storm, relative to beginning of 1979
+mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
+refdt = dt(1979,1,1,0,0)
+diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]   
+
 ######################################################
 # Statistics 
 ######################################################

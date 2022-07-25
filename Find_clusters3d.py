@@ -19,10 +19,9 @@ with open("Options.yaml") as f:
 # Load storm tracks --> TO DO: Move to function
 #########################
 #Storm tracks file
-st_file = "Selected_tracks_2011_2012"
-#st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
+st_file = Options["st_file"]
+nrskip = Options["nrskip"]
 
-nrskip = 1
 str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
 str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
 str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
@@ -71,7 +70,6 @@ else:
     drTracks  = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
     dtTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
 
-
 from Cluster_functions import *
 #calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest, get_indices_sparse, find_cluster_type, find_cluster_type3, connect_cyclones
 
@@ -88,8 +86,6 @@ ids_storms = get_indices_sparse(str_id)
 #Check which year, month, hemisphere belongs storms to
 start = time.time()
 
-yrstorms = np.zeros(nrstorms)
-mnstorms = np.zeros(nrstorms)
 hemstorms = np.full(nrstorms,"Undefined")
 firstdt = []
 lastdt = []
@@ -101,8 +97,6 @@ for strid in range(nrstorms):
 	#Check which winter it belongs to
 	tmpyear = dt_temp[0].year
 	tmpmonth = dt_temp[0].month
-	yrstorms[strid] = tmpyear
-	mnstorms[strid] = tmpmonth
 
 	#Save the first and last dt
 	firstdt.append(dt_temp[0])
@@ -118,11 +112,7 @@ end = time.time()
 firstdt = np.array(firstdt)
 lastdt = np.array(lastdt)
 print(start-end)
-
-#Months of storm, relative to beginning of 1979
-mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
-refdt = dt(1979,1,1,0,0)
-diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                         
+                                   
 # START CALCULATION OF CLUSTERS
 print("---------------------------------------------")
 print("Start checking for:                          ")
@@ -149,16 +139,13 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
     lons1 = str_lon[selidxs1]
     times1 = str_dt[selidxs1]
     
-    #Only check if the storm is in the current month, or one after or before it, in the same hemisphere. 
-    #diffmon = mnstorms_rel[strm1] - mnstorms_rel
+    #Only compare with storms which are close enought im time compared to strm1 
     diffdt1  = firstdt - lastdt[strm1]
     diffdt2  = firstdt[strm1] - lastdt
     
     strm2idxs = np.where((np.arange(nrstorms) > strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
-    #print("Nr strm2: " + str(len(strm2idxs)))
     
     for strm2 in strm2idxs: #[5]: #strm2idxs: #range(minstidx,maxstidx)
-        #print("Strm1 :" + str(strm1 + 1) + " Strm2: " + str(strm2 + 1))
 
         selidxs2 = ids_storms[uniq_ids[strm2]] #np.where(str_id == uniq_ids[strm2])
         lats2 = str_lat[selidxs2]
@@ -166,9 +153,7 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
         times2 = str_dt[selidxs2]
 
         conn, angle, dt, dr, strConn1, strConn2  =\
-                        connect_cyclones(lons1,lats1,times1,
-                                                lons2,lats2,times2,
-                                                Options)
+            connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
         
         connTracks[strm2,strm1] = conn
         connTracks[strm1,strm2] = conn
@@ -182,7 +167,6 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
 endtime = timer()
 print(endtime - starttime) # Time in seconds, e.g. 5.38091952400282
 timing = endtime -starttime
-#np.fill_diagonal(connTracks,0)
 
 if(Options["frameworkSparse"] == True):
     connTracks = connTracks.tocsr()
@@ -201,27 +185,18 @@ for stridx in range(nrstorms):
         clusttemp, connTypes, clusterType = find_cluster_type([stridx],connTracks) 
     #clusttemp2, connTypes2, anglesClust2, clusterType2, angleType = find_cluster_type2([stridx],connTracks, angleTracks)
     
-    #if(clusterType != clusterType2):
-    #    print(connTypes)
-    #    print(clusterType)
-    #    print(connTypes2)
-    #    print(clusterType2)
-    
     if(len(clusttemp) > maxlength):
         maxlength = len(clusttemp)
     
     clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
     clusters.append(clusttemp)
-    #clusterTypes.append(clusterType)
-    #clusterTypes2.append(clusterType2)
-    #angleTypes.append(angleType)
     
 #Delete duplicates and sort on the first number in clusters:
 unique_clusters = [list(x) for x in set(tuple(x) for x in clusters)]
 
 #from operator import itemgetter
 sorted_clusters =  sorted(unique_clusters)
-print(timer() - starttime) # Time in seconds, e.g. 5.38091952400282
+print(timer() - starttime) # Time in seconds
 
 ############################
 # Step 3 Suborder clusters
