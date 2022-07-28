@@ -139,10 +139,8 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
         
         str_connected[selidxs1] = strConn1
         str_connected[selidxs2] = strConn2
-                     
-endtime = timer()
-print(endtime - starttime) # Time in seconds, e.g. 5.38091952400282
-timing = endtime -starttime
+
+print(timer() - starttime) # Time in seconds
 
 if(Options["frameworkSparse"] == True):
     connTracks = connTracks.tocsr()
