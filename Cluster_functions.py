@@ -4,6 +4,8 @@ from __future__ import absolute_import, unicode_literals
 import numpy as np 
 import math
 from scipy.sparse import csr_matrix
+from numpy import loadtxt
+from datetime import datetime as dt, timedelta as td
 
 maxdists = []
 maxdistsown = []
@@ -13,6 +15,40 @@ clusterTypes = []
 clusterTypes2 = []
 angleTypes = []
 
+##################################################
+# Data processing functions
+###################################################
+
+def read_file(st_file, nrskip=1):
+    str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
+    str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
+    str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
+    str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
+    str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
+    
+    return str_id, str_nr, str_date, str_lat, str_lon
+
+#Function to convert timestamp (YYYYMMDDHH) to datetime    
+def dt_array(str_date):
+    #Determine datetime array for the tracks
+    str_dt = []
+    str_hour = np.zeros(len(str_date))
+    str_day = np.zeros(len(str_date))
+    str_month = np.zeros(len(str_date))
+    str_year = np.zeros(len(str_date))
+    
+    for idx in range(len(str_date)):
+        year = int(str(str_date[idx])[:4])
+        month = int(str(str_date[idx])[4:6])
+        day   = int(str(str_date[idx])[6:8])
+        hour   = int(str(str_date[idx])[8:10])
+        str_hour[idx] = hour
+        str_day[idx] = day
+        str_month[idx] = month
+        str_year[idx] = year
+        str_dt.append(dt(year,month,day,hour))
+        
+    return str_dt
 
 ##################################################
 # General FUNCTIONS

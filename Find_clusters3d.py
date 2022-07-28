@@ -11,45 +11,25 @@ from scipy.sparse import dok_matrix
 import time
 from timeit import default_timer as timer
 import yaml
+from Cluster_functions import read_file, dt_array
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
 
 #########################
-# Load storm tracks --> TO DO: Move to function
+# Load storm tracks 
 #########################
+
 #Storm tracks file
-st_file = Options["st_file"]
-nrskip = Options["nrskip"]
-
-str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
-str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
-str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
-str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
-str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
-str_result = "Results_DJF_NH_2011_2012_"
-
-#Determine datetime array for the tracks
-str_dt = []
-str_hour = np.zeros(len(str_date))
-str_day = np.zeros(len(str_date))
-str_month = np.zeros(len(str_date))
-str_year = np.zeros(len(str_date))
-for idx in range(len(str_date)):
-	year = int(str(str_date[idx])[:4])
-	month = int(str(str_date[idx])[4:6])
-	day   = int(str(str_date[idx])[6:8])
-	hour   = int(str(str_date[idx])[8:10])
-	str_hour[idx] = hour
-	str_day[idx] = day
-	str_month[idx] = month
-	str_year[idx] = year
-	str_dt.append(dt(year,month,day,hour))
+str_id, str_nr, str_date, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
+str_dt = dt_array(str_date)
 
 #Convert to an array
 str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 str_id = str_id - np.nanmin(str_id) + 1
+
+str_result = "Results_DJF_NH_2011_2012_"
 
 nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
@@ -247,4 +227,3 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
 
 np.savez(outfile, sorted_clusters=sorted_clusters, maxdists=np.array(maxdists),str_connected = str_connected)
-

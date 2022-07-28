@@ -10,41 +10,22 @@ with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
     
 #########################
-# Load storm tracks
+# Load storm tracks 
 #########################
+
 #Storm tracks file
-st_file = "Selected_tracks_2011_2012"
-st_file = "Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
+st_file = Options["st_file"]
+nrskip = Options["nrskip"]
 
-nrskip = 1
-str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
-str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
-str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
-str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
-str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
-str_result = "Results_DJF_NH_2011_2012_"
-
-#Determine datetime array for the tracks
-str_dt = []
-str_hour = np.zeros(len(str_date))
-str_day = np.zeros(len(str_date))
-str_month = np.zeros(len(str_date))
-str_year = np.zeros(len(str_date))
-for idx in range(len(str_date)):
-	year = int(str(str_date[idx])[:4])
-	month = int(str(str_date[idx])[4:6])
-	day   = int(str(str_date[idx])[6:8])
-	hour   = int(str(str_date[idx])[8:10])
-	str_hour[idx] = hour
-	str_day[idx] = day
-	str_month[idx] = month
-	str_year[idx] = year
-	str_dt.append(dt(year,month,day,hour))
+str_id, str_nr, str_date, str_lat, str_lon = read_file(st_file)
+str_dt = dt_array(str_date)
 
 #Convert to an array
 str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 str_id = str_id - np.nanmin(str_id) + 1
+
+str_result = "Results_DJF_NH_2011_2012_"
 
 nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
