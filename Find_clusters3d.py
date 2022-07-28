@@ -16,11 +16,11 @@ from Cluster_functions import read_file, dt_array
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
 
+start = time.time()
+
 #########################
 # Load storm tracks 
 #########################
-
-#Storm tracks file
 str_id, str_nr, str_date, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
 str_dt = dt_array(str_date)
 
@@ -38,7 +38,6 @@ nrstorms = np.nanmax(str_id)
 #########################
 # Define result arrays
 #########################
-
 if(Options["frameworkSparse"] == False):
     connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
     angleTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
@@ -63,9 +62,7 @@ ids_storms = get_indices_sparse(str_id)
 # Preprocess storm tracks
 #########################
 
-#Check which year, month, hemisphere belongs storms to
-start = time.time()
-
+#Check which hemisphere belongs storms to
 hemstorms = np.full(nrstorms,"Undefined")
 firstdt = []
 lastdt = []
@@ -101,15 +98,15 @@ print("---------------------------------------------")
 timthresh_dt = td(hours=Options["timthresh"])
 
 ######################################################
-# Find connected and clustered storms
+# Step 1 Find connected and clustered storms
 #######################################################
 
 starttime = timer()
-for strm1 in range(nrstorms): #range(nrstorms): #[1]: # 
+for strm1 in range(nrstorms): 
     if(strm1%100 == 0):
         print(strm1) 
     #print("Strm1 :" + str(uniq_ids[strm1]))
-    selidxs1 = ids_storms[uniq_ids[strm1]] #np.where(str_id == uniq_ids[strm1])
+    selidxs1 = ids_storms[uniq_ids[strm1]] 
     
     lats1 = str_lat[selidxs1]	
     lons1 = str_lon[selidxs1]
@@ -119,18 +116,21 @@ for strm1 in range(nrstorms): #range(nrstorms): #[1]: #
     diffdt1  = firstdt - lastdt[strm1]
     diffdt2  = firstdt[strm1] - lastdt
     
+    #To do: Check if this can be speed up
     strm2idxs = np.where((np.arange(nrstorms) > strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
     
-    for strm2 in strm2idxs: #[5]: #strm2idxs: #range(minstidx,maxstidx)
+    for strm2 in strm2idxs: 
 
-        selidxs2 = ids_storms[uniq_ids[strm2]] #np.where(str_id == uniq_ids[strm2])
+        selidxs2 = ids_storms[uniq_ids[strm2]] 
         lats2 = str_lat[selidxs2]
         lons2 = str_lon[selidxs2] 
         times2 = str_dt[selidxs2]
 
+        #Check if storm 1 and 2 are connected
         conn, angle, dt, dr, strConn1, strConn2  =\
             connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
         
+        #Save Results in arrays
         connTracks[strm2,strm1] = conn
         connTracks[strm1,strm2] = conn
         angleTracks[strm1,strm2] = angle
