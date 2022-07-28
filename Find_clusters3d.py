@@ -74,10 +74,6 @@ for strid in range(nrstorms):
 	dt_temp = str_dt[ids_storms[uniq_ids[strid]]]
 	lat_temp = str_lat[ids_storms[uniq_ids[strid]]]
 
-	#Check which winter it belongs to
-	tmpyear = dt_temp[0].year
-	tmpmonth = dt_temp[0].month
-
 	#Save the first and last dt
 	firstdt.append(dt_temp[0])
 	lastdt.append(dt_temp[-1])
