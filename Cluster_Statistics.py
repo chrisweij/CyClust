@@ -25,8 +25,6 @@ str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 str_id = str_id - np.nanmin(str_id) + 1
 
-str_result = "Results_DJF_NH_2011_2012_"
-
 nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
 nrstorms = np.nanmax(str_id)
@@ -35,9 +33,8 @@ nrstorms = np.nanmax(str_id)
 # Load cluster stats
 #########################
 formatter =  "{:1.1f}"
-#outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
-outfile = "Clusters_output/Results_DJF_NH_2011_2012_1.0_tim_36.0_length_1.5"
-Results = np.load(outfile)
+outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + ".npz"
+Results = np.load(outfile,allow_pickle=True)
 sorted_clusters = Results["sorted_clusters"]
 
 #########################

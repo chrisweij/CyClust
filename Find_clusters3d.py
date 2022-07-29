@@ -29,8 +29,6 @@ str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 str_id = str_id - np.nanmin(str_id) + 1
 
-str_result = "Results_DJF_NH_2011_2012_"
-
 nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
 nrstorms = np.nanmax(str_id)
@@ -220,4 +218,8 @@ sorted_clusters_nolength = sorted(unnest(sorted_subclusters_nolength))
 formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
 
-np.savez(outfile, sorted_clusters=sorted_clusters, maxdists=np.array(maxdists),str_connected = str_connected)
+# TO DO: Update to remove warning message
+np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), 
+sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected)
+
+
