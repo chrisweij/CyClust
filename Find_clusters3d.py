@@ -29,7 +29,7 @@ str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 str_id = str_id - np.nanmin(str_id) + 1
 
-nrstorms = len(np.unique(str_id))
+#nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
 nrstorms = np.nanmax(str_id)
 
@@ -83,6 +83,26 @@ end = time.time()
 firstdt = np.array(firstdt)
 lastdt = np.array(lastdt)
 print(start-end)
+
+##########################
+# Selection of just one hemisphere
+##########################
+sel_storms = np.where(hemstorms == "NH")[0]
+#selection = unnest(unnest(ids_storms[]))
+selection = unnest(unnest([ids_storms[index + 1] for index in sel_storms]))
+
+str_id = str_id[selection]
+str_lon = str_lon[selection]
+str_lat = str_lat[selection]
+str_dt = str_dt[selection]
+
+#########################
+# Get indices of storms
+#########################
+uniq_ids = np.unique(str_id)
+ids_storms = get_indices_sparse(str_id)
+nr_storms = np.nanmax(str_id)
+
                                    
 # START CALCULATION OF CLUSTERS
 print("---------------------------------------------")
