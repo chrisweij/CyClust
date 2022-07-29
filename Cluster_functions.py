@@ -282,9 +282,83 @@ def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
 	return dist, timdiff
 
 
+def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
+                     Options):
+    
+        conn = 0
+        angle = 0
+        dt = 0
+        dr = 0
+        str_contemp1 = np.zeros(len(lons1))
+        str_contemp2 = np.zeros(len(lons2))
+    
+        dists, timdiffs, timspacediff  = compare_trks_np(lons2,lats2,times2,lons1,lats1,times1,Options["timthresh"]) #,timthresh timspacediff,
+
+        #Calculate distance over which storms are connected
+        #First select just the lons, lats times over which a particular storm is connected
+        pntselect = np.nanmax((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]),axis=0) #*Rossby_45
+        test1 = np.nansum(pntselect) 
+        #Do the same for the other track
+        pntselect2 = np.nanmax((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]),axis=1) #*Rossby_45
+        test2 = np.nansum(pntselect2)
+
+        nrPairs = np.nansum((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]))
+        #print(nrPairs)
+
+        if((test1 >=2) & (test2 >= 2)):
+            pntdists, pnttimdiffs, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
+
+            #Just select the points which are connected and calculate distances between the points for both tracks
+            owndists, owntims, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons1[pntselect],lats1[pntselect],times1[pntselect])
+            owndists2, owntims2, = compare_trks_np(lons2[pntselect2],lats2[pntselect2],times2[pntselect2],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
+            
+            maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
+            maxtime = (np.nanmax(np.abs(owntims)) + np.nanmax(np.abs(owntims2)))/2.0
+            #maxtime = (test1 + test2)/2.0*6.0
+
+            maxtimspacediff = ((maxdist/Options["lngthresh"])**2.0 + (maxtime/(Options["timlngthresh"]*6.0))**2.0)**(0.5)
+            
+            ratio = (maxtime/(Options["timlngthresh"]*6.0))/(maxdist/Options["lngthresh"])
+            angle = np.arctan(ratio)
+            
+            
+            if(maxtimspacediff >=1.0):            
+                angles.extend([angle*180/np.pi])
+        else:
+            maxdist = 0
+            maxtime = 0
+            maxtimspacediff = 0
+        
+        if((maxtime > (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
+            if(maxtime > (Options["timlngthresh"]*6.0)):
+                conn += 2
+
+            if(maxdist >= Options["lngthresh"]):
+                conn += 1
+
+            str_contemp1[pntselect] = 1.0
+            str_contemp2[pntselect2] = 1.0
+
+            anglesClust.extend([angle*180/np.pi])
+            angle = angle*180/np.pi
+
+            if(angle == 0):
+                print("Zero angle")
+                print((maxdist/lngthresh))
+                print((maxtime/(timlngthresh*6.0)))
+
+            dr = (maxdist/Options["lngthresh"])
+            dt = (maxtime/(Options["timlngthresh"]*6.0))
+        else:
+            anglesClust.extend([np.nan])
+
+                
+        return conn, angle, dt, dr, str_contemp1, str_contemp2
+
+
 # TO DO: Add description
 # TO DO: Clean up of code (not all options are necessary anymore)
-def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
+def connect_cyclones_test(lons1,lats1,times1,lons2,lats2,times2,
                      Options):
     
         conn = 0
@@ -336,15 +410,7 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             angle = np.arctan(ratio)
             
             
-            if(maxtimspacediff >=1.0):
-                #print("Max distance: " + str(maxdist))
-                #print("Max time diff: " + str(maxtime))
-                #print("Max spacetime diff: " + str(maxtimspacediff))
-            
-
-                #print("Angle: " + str(angle*180/np.pi))
-                #print("Ratio: " + str(ratio))
-            
+            if(maxtimspacediff >=1.0):            
                 angles.extend([angle*180/np.pi])
         else:
             maxdist = 0
@@ -662,29 +728,6 @@ def find_cluster_type_dokm(cluster,connTracks,contype="All"):
 
     #Check if all storms are counted??
     if(len(cluster) == len(cluster_old)):
-        '''
-        if(contype == "All"):
-            connTypes = [x for strm in cluster for x in connTracks.getrow(strm).data()]
-        elif(contype == "Length"):
-            connTypes = [x for strm in cluster for x in list(connTracks.getrow(stridx).data() == 1.0) | (connTracks[strm,:] == 3.0)])]
-        elif(contype == "Time"):
-            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] >= 2.0])]
-        elif(contype == "NoLength"):
-            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] == 2.0])]
-        else:
-            connTypes = []
-            
-        if(len(cluster) == 1):
-            clusterType = "None"
-        elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
-            clusterType = "Time"
-        elif(all((x == 1.0 or x == 3.0) for x in connTypes)):
-            clusterType = "Length"
-        else:
-            clusterType = "Mixed"
-        
-        return cluster_old, connTypes, clusterType
-        '''
         return cluster_old
     else:
         #connTypes.extend(list(typetemp))
