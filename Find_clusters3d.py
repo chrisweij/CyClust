@@ -31,7 +31,6 @@ str_connected   = np.zeros(str_dt.shape)
 
 #nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
-nrstorms = np.nanmax(str_id)
 
 #########################
 # Define result arrays
@@ -55,6 +54,7 @@ from Cluster_functions import *
 #########################
 uniq_ids = np.unique(str_id)
 ids_storms = get_indices_sparse(str_id)
+nrstorms = len(uniq_ids)
 
 #########################
 # Preprocess storm tracks
@@ -87,6 +87,7 @@ print(start-end)
 ##########################
 # Selection of just one hemisphere
 ##########################
+'''
 sel_storms = np.where(hemstorms == "NH")[0]
 #selection = unnest(unnest(ids_storms[]))
 selection = unnest(unnest([ids_storms[index + 1] for index in sel_storms]))
@@ -102,7 +103,7 @@ str_dt = str_dt[selection]
 uniq_ids = np.unique(str_id)
 ids_storms = get_indices_sparse(str_id)
 nr_storms = np.nanmax(str_id)
-
+'''
                                    
 # START CALCULATION OF CLUSTERS
 print("---------------------------------------------")
@@ -201,22 +202,26 @@ for cluster in sorted_clusters:
     subclusters_length = []
     subclusters_nolength = []
     
-    for stridx in cluster:
+    for strid in cluster:
+        
+        #Convert strid to index
+        stridx = [i for i in range(len(uniq_ids)) if uniq_ids[i] == strid]
+        #np.where(uniq_ids == strid)[0]
         
         #Length clusters
         if(Options["frameworkSparse"] == True):
-            clusttemp = find_cluster_type_dokm([stridx - 1],connTracks,contype="Length")
+            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Length")
         else:
-            clusttemp, connTypes, clusterType = find_cluster_type3([stridx - 1],connTracks,contype="Length")
+            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Length")
 
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
         subclusters_length.append(clusttemp)
         
         #Stationary clusters
         if(Options["frameworkSparse"] == True):
-            clusttemp = find_cluster_type_dokm([stridx - 1],connTracks,contype="NoLength")
+            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="NoLength")
         else:
-            clusttemp, connTypes, clusterType = find_cluster_type3([stridx - 1],connTracks,contype="NoLength") 
+            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="NoLength") 
 
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
         subclusters_nolength.append(clusttemp)
@@ -239,7 +244,6 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
 
 # TO DO: Update to remove warning message
-np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), 
-sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected)
+np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected)
 
 
