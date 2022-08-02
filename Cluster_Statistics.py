@@ -18,16 +18,18 @@ st_file = Options["st_file"]
 nrskip = Options["nrskip"]
 
 str_id, str_nr, str_date, str_lat, str_lon = read_file(st_file)
+str_pres   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[5],dtype=float)
+str_lapl   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[9],dtype=float)
 str_dt = dt_array(str_date)
 
 #Convert to an array
 str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
-str_id = str_id - np.nanmin(str_id) + 1
+#str_id = str_id - np.nanmin(str_id) + 1
 
 nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
-nrstorms = np.nanmax(str_id)
+#nrstorms = np.nanmax(str_id)
 
 #########################
 # Load cluster stats
@@ -47,33 +49,47 @@ start = time.time()
 yrstorms = np.zeros(nrstorms)
 mnstorms = np.zeros(nrstorms)
 hemstorms = np.full(nrstorms,"Undefined")
+minpres = np.zeros(nrstorms)
+mindpdt = np.zeros(nrstorms)
+maxlapl = np.zeros(nrstorms)
+maxdldt = np.zeros(nrstorms)
+
 firstdt = []
 lastdt = []
 
 for strid in range(nrstorms):    
-	dt_temp = str_dt[ids_storms[uniq_ids[strid]]]
-	lat_temp = str_lat[ids_storms[uniq_ids[strid]]]
+    dt_temp = str_dt[ids_storms[uniq_ids[strid]]]
+    lat_temp = str_lat[ids_storms[uniq_ids[strid]]]
+    pres_temp = str_pres[ids_storms[uniq_ids[strid]]]
+    lapl_temp = str_lapl[ids_storms[uniq_ids[strid]]]
 
-	#Check which winter it belongs to
-	tmpyear = dt_temp[0].year
-	tmpmonth = dt_temp[0].month
-	yrstorms[strid] = tmpyear
-	mnstorms[strid] = tmpmonth
+    #Check which winter it belongs to
+    tmpyear = dt_temp[0].year
+    tmpmonth = dt_temp[0].month
+    yrstorms[strid] = tmpyear
+    mnstorms[strid] = tmpmonth
 
-	#Save the first and last dt
-	firstdt.append(dt_temp[0])
-	lastdt.append(dt_temp[-1])
+    #Save the first and last dt
+    firstdt.append(dt_temp[0])
+    lastdt.append(dt_temp[-1])
 
-	#Check if the storm is in the NH or SH
-	if(np.nanmean(lat_temp) > 0):
-		hemstorms[strid] = "NH"
-	elif(np.nanmean(lat_temp) < 0):
-		hemstorms[strid] = "SH"
+    #Check if the storm is in the NH or SH
+    if(np.nanmean(lat_temp) > 0):
+        hemstorms[strid] = "NH"
+    elif(np.nanmean(lat_temp) < 0):
+        hemstorms[strid] = "SH"
+        
+    #Min pres and dpdt, max lapl and dldt
+    minpres[strid] = np.nanmin(pres_temp)
+    delta = (dt_temp[1] - dt_temp[0]).total_seconds()/3600
+    mindpdt[strid] = np.nanmin(pres_temp[1:] - pres_temp[:-1])/delta
+    maxlapl[strid] = np.nanmax(lapl_temp)
+    maxdldt[strid] = np.nanmax(lapl_temp[1:] - lapl_temp[:-1])/delta
 
 end = time.time()
 firstdt = np.array(firstdt)
 lastdt = np.array(lastdt)
-print(start-end)
+print(str(end - start) + " seconds")
 
 #Months of storm, relative to beginning of 1979
 mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
@@ -120,8 +136,8 @@ for clustidx in range(len(sorted_clusters)):
             nrclst_wintNH[winters == tmpyear] += 1
             nrstrmclst_wintNH[winters == tmpyear] += len(clusttemp)
 
-
 ######################################################
 # Save statistics in a file
 ######################################################
-#lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,
+outfile_stats = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_stats.npz"
+np.savez(outfile_stats,minpres=minpres,maxlapl=maxlapl,  maxdldt=maxdldt,mindpdt=mindpdt, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint)

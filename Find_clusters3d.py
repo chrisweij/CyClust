@@ -29,7 +29,6 @@ str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 #str_id = str_id - np.nanmin(str_id) + 1
 
-#nrstorms = len(np.unique(str_id))
 str_connected   = np.zeros(str_dt.shape)
 
 #########################
