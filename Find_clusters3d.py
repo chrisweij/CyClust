@@ -11,7 +11,7 @@ from scipy.sparse import dok_matrix
 import time
 from timeit import default_timer as timer
 import yaml
-from Cluster_functions import read_file, dt_array
+from Cluster_functions import read_file, read_file_clim, dt_array
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
@@ -21,15 +21,14 @@ start = time.time()
 #########################
 # Load storm tracks 
 #########################
-str_id, str_nr, str_date, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
-str_dt = dt_array(str_date)
+str_id, str_nr, str_dt, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
+
+#str_id, str_nr, str_dt, str_lat, str_lon = read_file_clim(Options["st_file"],Options["nrskip"])
 
 #Convert to an array
 str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 #str_id = str_id - np.nanmin(str_id) + 1
-
-str_connected   = np.zeros(str_dt.shape)
 
 #########################
 # Define result arrays
@@ -49,7 +48,9 @@ from Cluster_functions import *
 #calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest, get_indices_sparse, find_cluster_type, find_cluster_type3, connect_cyclones
 
 #########################
-# Get indices of storms
+# Get indices of storms 
+# so that ids_storms[id] gives the ids in the arrays
+# str_id, str_lon,.. belonging to that specific storm
 #########################
 uniq_ids = np.unique(str_id)
 ids_storms = get_indices_sparse(str_id)

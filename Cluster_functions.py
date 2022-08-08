@@ -26,8 +26,25 @@ def read_file(st_file, nrskip=1):
     str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
     str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
     
-    return str_id, str_nr, str_date, str_lat, str_lon
+    str_dt = dt_array(str_date)
+    
+    return str_id, str_nr, str_dt, str_lat, str_lon
 
+def read_file_clim(st_file, nrskip=0):
+    str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
+    str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
+    str_year = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
+    str_day = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3],dtype=int)
+    str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[5])
+    str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
+  
+    str_dt = []
+    for idx in range(len(str_year)):  
+
+        str_dt.append(dt(str_year[idx]-1,12,1,0) + td(days=(str_day[idx]-1)/4))
+    
+    return str_id, str_nr, str_dt, str_lat, str_lon
+    
 #Function to convert timestamp (YYYYMMDDHH) to datetime    
 def dt_array(str_date):
     #Determine datetime array for the tracks
@@ -344,8 +361,8 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
 
             if(angle == 0):
                 print("Zero angle")
-                print((maxdist/lngthresh))
-                print((maxtime/(timlngthresh*6.0)))
+                print((maxdist/Options["lngthresh"]))
+                print((maxtime/(Options["timlngthresh"]*6.0)))
 
             dr = (maxdist/Options["lngthresh"])
             dt = (maxtime/(Options["timlngthresh"]*6.0))
