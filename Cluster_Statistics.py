@@ -4,6 +4,7 @@
 from datetime import datetime as dt, timedelta as td
 import numpy as np
 from numpy import loadtxt
+from matplotlib import pyplot as plt
 import yaml
 import time
 from Cluster_functions import read_file, get_indices_sparse
@@ -25,11 +26,9 @@ str_lapl   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols
 
 #Convert to an array
 str_dt          = np.array(str_dt)
-str_connected   = np.zeros(str_dt.shape)
 #str_id = str_id - np.nanmin(str_id) + 1
 
 nrstorms = len(np.unique(str_id))
-str_connected   = np.zeros(str_dt.shape)
 #nrstorms = np.nanmax(str_id)
 
 #########################
@@ -48,6 +47,7 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + ".npz"
 Results = np.load(outfile,allow_pickle=True)
 sorted_clusters = Results["sorted_clusters"]
+str_connected = Results['str_connected']
 
 #########################
 # Preprocess storm tracks
