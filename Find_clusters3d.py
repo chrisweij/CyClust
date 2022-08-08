@@ -149,6 +149,10 @@ for strm1 in range(nrstorms):
         conn, angle, dt, dr, strConn1, strConn2  =\
             connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
         
+        if conn != 0: 
+            print(strConn1)
+            print(strConn2)
+        
         #Save Results in arrays
         connTracks[strm2,strm1] = conn
         connTracks[strm1,strm2] = conn
@@ -156,8 +160,8 @@ for strm1 in range(nrstorms):
         dtTracks[strm1,strm2] = dt
         drTracks[strm1,strm2] = dr
         
-        str_connected[selidxs1] = strConn1
-        str_connected[selidxs2] = strConn2
+        str_connected[selidxs1] += strConn1
+        str_connected[selidxs2] += strConn2
 
 print(timer() - starttime) # Time in seconds
 

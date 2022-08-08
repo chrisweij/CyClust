@@ -159,7 +159,7 @@ if(Options["checkBasin"]):
     #Check for basin for each storm
     for strm in range(1,np.nanmax(str_id)+1):
         print("Strm " + str(strm))
-        selidxs = (str_id == strm) & (str_connected == True)
+        selidxs = (str_id == strm) #& (str_connected == True)
         lon_temp = str_lon[selidxs] 
         lat_temp = str_lat[selidxs] 
         dt_temp = str_dt[selidxs] 
