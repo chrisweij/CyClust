@@ -7,10 +7,13 @@ from numpy import loadtxt
 from matplotlib import pyplot as plt
 import yaml
 import time
+from scipy import stats
 from Cluster_functions import read_file, get_indices_sparse
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
+    
+timchar = Options["str_result"]
     
 #########################
 # Load storm tracks 
@@ -23,9 +26,13 @@ nrskip = Options["nrskip"]
 str_id, str_nr, str_dt, str_lat, str_lon = read_file(st_file)
 str_pres   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[5],dtype=float)
 str_lapl   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[9],dtype=float)
+str_radi = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[7],dtype=float)
+str_delp = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[8],dtype=float)
 
 #Convert to an array
 str_dt          = np.array(str_dt)
+str_month = np.array([x.month for x in str_dt])
+str_year = np.array([x.year for x in str_dt])
 #str_id = str_id - np.nanmin(str_id) + 1
 
 nrstorms = len(np.unique(str_id))
@@ -45,6 +52,7 @@ nrstorms = len(uniq_ids)
 #########################
 formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + ".npz"
+
 Results = np.load(outfile,allow_pickle=True)
 sorted_clusters = Results["sorted_clusters"]
 str_connected = Results['str_connected']
@@ -366,15 +374,15 @@ storms_sPacific_clust = [item for sublist in sorted_clusters_sPacific for item i
 storms_sIndian_clust = [item for sublist in sorted_clusters_sIndian for item in sublist if (len(sublist) > 3)]
 
 storms_Atlantic = [item for sublist in sorted_clusters_Atlantic for item in sublist]
-length_Atlantic = [len(sublist) for sublist in sorted_clusters_Atlantic]
+length_Atlantic = [len(sublist) for sublist in sorted_clusters_Atlantic for item in sublist]
 storms_Pacific = [item for sublist in sorted_clusters_Pacific for item in sublist]
-length_Pacific = [len(sublist) for sublist in sorted_clusters_Pacific]
+length_Pacific = [len(sublist) for sublist in sorted_clusters_Pacific for item in sublist]
 storms_sAtlantic = [item for sublist in sorted_clusters_sAtlantic for item in sublist]
-length_sAtlantic = [len(sublist) for sublist in sorted_clusters_sAtlantic]
+length_sAtlantic = [len(sublist) for sublist in sorted_clusters_sAtlantic for item in sublist]
 storms_sPacific = [item for sublist in sorted_clusters_sPacific for item in sublist]
-length_sPacific = [len(sublist) for sublist in sorted_clusters_sPacific]
+length_sPacific = [len(sublist) for sublist in sorted_clusters_sPacific for item in sublist]
 storms_sIndian = [item for sublist in sorted_clusters_sIndian for item in sublist]
-length_sIndian = [len(sublist) for sublist in sorted_clusters_sIndian]
+length_sIndian = [len(sublist) for sublist in sorted_clusters_sIndian for item in sublist]
 
 #Define results arrays
 pres_Atlantic = np.zeros(len(storms_Atlantic))
@@ -1599,7 +1607,6 @@ plt.ylabel("Count")
 
 plt.savefig("MaxLaplPdfAreas" + timchar + "_StrongestCyclones.pdf")
 
-
 ############################################################################
 # PDF of month for storms in clusters for each basin
 ############################################################################
@@ -1648,8 +1655,6 @@ for l in range(10):
 		quantsSAtlantic[l,::] = np.quantile(month_sAtlantic[np.array(length_sAtlantic) >= (l + 1)],[0.1,0.5,0.9])
 		quantsSPacific[l,::] = np.quantile(month_sPacific[np.array(length_sPacific) >= (l + 1)],[0.1,0.5,0.9])
 		quantsSIndian[l,::] = np.quantile(month_sIndian[np.array(length_sIndian) >= (l + 1)],[0.1,0.5,0.9])
-
-
 
 
 ###########################
