@@ -24,7 +24,7 @@ st_file : "Tracks/Selected_tracks_1979to2018_0101to1231_ei_NH_Leonidas__with_sta
 "connPairs" : False,
 "excludeLong" : False #Exclude other type
 "distmeth" : "AlongTracksDirect" #"MaxDist" #"AlongTracks" "AlongTrackDirect"
-"frameworkSparse" : False #True
+"frameworkSparse" : True
 
 # Output directory
 "outdir" : "Results/"
