@@ -166,7 +166,9 @@ if(Options["checkBasin"]):
         wint_temp = (np.array(ext_winter))[selidxs] 
         swint_temp = (np.array(ext_swinter))[selidxs] 
          
-        #nr_Atlantic = np.nansum((lon_temp >= 260) & (lon_temp <= 360) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
+        nr_EuroAsia = np.nansum((lon_temp >= 10) & (lon_temp <= 120) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
+        nr_America = np.nansum((lon_temp >= 240) & (lon_temp <= 280) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
+        
         nr_Atlantic = np.nansum(((lon_temp >= 280) | (lon_temp <= 10)) & (lat_temp >= 20) & (lat_temp <= 70) & (wint_temp == True) )
         nr_Pacific = np.nansum((lon_temp >= 120) & (lon_temp <= 240) & (lat_temp >= 20) & (lat_temp <= 70) & (wint_temp == True) )
         nr_nhemis    = np.nansum((lat_temp <= 75) & (lat_temp >= 20) & (wint_temp == True)) 
@@ -177,6 +179,12 @@ if(Options["checkBasin"]):
 
         nr_shemis    = np.nansum((lat_temp >= -75) & (lat_temp <= -20) & (swint_temp == True)) 
 
+        if( nr_EuroAsia/len(lon_temp) >= 0.5):
+            str_basin[strm -1] = "EuroAsia"
+            
+        if( nr_America/len(lon_temp) >= 0.5):
+            str_basin[strm -1] = "America"
+            
         if( nr_Atlantic/len(lon_temp) >= 0.5):
             str_basin[strm -1] = "Atlantic"
 
@@ -358,15 +366,15 @@ storms_sPacific_clust = [item for sublist in sorted_clusters_sPacific for item i
 storms_sIndian_clust = [item for sublist in sorted_clusters_sIndian for item in sublist if (len(sublist) > 3)]
 
 storms_Atlantic = [item for sublist in sorted_clusters_Atlantic for item in sublist]
-length_Atlantic = [len(sublist) for sublist in sorted_clusters_Atlantic for item in sublist]
+length_Atlantic = [len(sublist) for sublist in sorted_clusters_Atlantic]
 storms_Pacific = [item for sublist in sorted_clusters_Pacific for item in sublist]
-length_Pacific = [len(sublist) for sublist in sorted_clusters_Pacific for item in sublist]
+length_Pacific = [len(sublist) for sublist in sorted_clusters_Pacific]
 storms_sAtlantic = [item for sublist in sorted_clusters_sAtlantic for item in sublist]
-length_sAtlantic = [len(sublist) for sublist in sorted_clusters_sAtlantic for item in sublist]
+length_sAtlantic = [len(sublist) for sublist in sorted_clusters_sAtlantic]
 storms_sPacific = [item for sublist in sorted_clusters_sPacific for item in sublist]
-length_sPacific = [len(sublist) for sublist in sorted_clusters_sPacific for item in sublist]
+length_sPacific = [len(sublist) for sublist in sorted_clusters_sPacific]
 storms_sIndian = [item for sublist in sorted_clusters_sIndian for item in sublist]
-length_sIndian = [len(sublist) for sublist in sorted_clusters_sIndian for item in sublist]
+length_sIndian = [len(sublist) for sublist in sorted_clusters_sIndian]
 
 #Define results arrays
 pres_Atlantic = np.zeros(len(storms_Atlantic))
