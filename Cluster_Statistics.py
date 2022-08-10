@@ -14,7 +14,7 @@ from Cluster_functions import read_file, get_indices_sparse
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
     
-timchar = Options["str_result"]
+reschar = Options["str_result"] + Options["whichClusters"]
     
 #########################
 # Load storm tracks 
@@ -258,9 +258,9 @@ if(Options["checkBasin"]):
             if(np.nansum(str_hemis[np.array(storms_temp) - 1] == "shemis")/len(storms_temp) >= 0.5):
                 sorted_clusters_shemisphere.append(storms_temp)
 
-    #np.savez("/Data/gfi/spengler/cwe022/Sorted_Clusters_Areas" + timchar + ".npz",sorted_clusters_Atlantic=sorted_clusters_Atlantic,sorted_clusters_Pacific= sorted_clusters_Pacific, sorted_clusters_sAtlantic=sorted_clusters_sAtlantic,sorted_clusters_sPacific=sorted_clusters_sPacific,sorted_clusters_sIndian=sorted_clusters_sIndian, sorted_clusters_shemisphere= sorted_clusters_shemisphere, str_basin=str_basin,str_hemis=str_hemis)
+    #np.savez("/Data/gfi/spengler/cwe022/Sorted_Clusters_Areas" + reschar + ".npz",sorted_clusters_Atlantic=sorted_clusters_Atlantic,sorted_clusters_Pacific= sorted_clusters_Pacific, sorted_clusters_sAtlantic=sorted_clusters_sAtlantic,sorted_clusters_sPacific=sorted_clusters_sPacific,sorted_clusters_sIndian=sorted_clusters_sIndian, sorted_clusters_shemisphere= sorted_clusters_shemisphere, str_basin=str_basin,str_hemis=str_hemis)
 else:
-    Results = np.load("/Data/gfi/spengler/cwe022/Sorted_Clusters_Areas" + timchar + ".npz",allow_pickle=True)
+    Results = np.load("/Data/gfi/spengler/cwe022/Sorted_Clusters_Areas" + reschar + ".npz",allow_pickle=True)
     sorted_clusters_Atlantic = Results["sorted_clusters_Atlantic"]
     sorted_clusters_Pacific = Results["sorted_clusters_Pacific"]
     sorted_clusters_sAtlantic = Results["sorted_clusters_sAtlantic"]
@@ -698,7 +698,7 @@ f.add_subplot(111, frameon=False)
 plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 plt.xlabel("Minimum Pressure (hPa) of storm")
 plt.ylabel("Count")
-plt.savefig("MinPresAreas" + timchar + ".pdf")
+plt.savefig("MinPresAreas" + reschar + ".pdf")
 
 ###########################
 # Plot max. Laplacian
@@ -789,7 +789,7 @@ f.add_subplot(111, frameon=False)
 plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 plt.xlabel("Maximum Laplacian hPa ("u'\N{DEGREE SIGN}'" lat)**-2 " + "of storm")
 plt.ylabel("Count")
-plt.savefig("MaxLaplAreas" + timchar + ".pdf")
+plt.savefig("MaxLaplAreas" + reschar + ".pdf")
 
 
 ############################################################################
@@ -882,7 +882,7 @@ f.add_subplot(111, frameon=False)
 plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 plt.xlabel("Mean radius of storm")
 plt.ylabel("Count")
-plt.savefig("MeanRadiusAreas" + timchar + ".pdf")
+plt.savefig("MeanRadiusAreas" + reschar + ".pdf")
 
 
 ############################################################################
@@ -975,7 +975,7 @@ f.add_subplot(111, frameon=False)
 plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 plt.xlabel("Months of storm")
 plt.ylabel("Count")
-plt.savefig("MonthAreas" + timchar + ".pdf")
+plt.savefig("MonthAreas" + reschar + ".pdf")
 
 
 ############################################################################
@@ -1068,7 +1068,7 @@ f.add_subplot(111, frameon=False)
 plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 plt.xlabel("Year of storm")
 plt.ylabel("Count")
-plt.savefig("YearAreas" + timchar + ".pdf")
+plt.savefig("YearAreas" + reschar + ".pdf")
 
 ############################################################################
 # PDF of min. pressure clusters for each basin
@@ -1186,7 +1186,7 @@ plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=Fa
 plt.xlabel("Minimum Pressure (hPa) of storm")
 plt.ylabel("Count")
 
-plt.savefig("MinPresPdfAreas" + timchar + ".pdf")
+plt.savefig("MinPresPdfAreas" + reschar + ".pdf")
 
 
 
@@ -1306,7 +1306,7 @@ plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=Fa
 plt.xlabel("Maximum laplacian (hPa) of storm")
 plt.ylabel("Count")
 
-plt.savefig("MaxlaplPdfAreas" + timchar + ".pdf")
+plt.savefig("MaxlaplPdfAreas" + reschar + ".pdf")
 
 
 
@@ -1461,7 +1461,7 @@ plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=Fa
 plt.xlabel("Minimum Pressure (hPa) of storm")
 plt.ylabel("Count")
 
-plt.savefig("MinPresPdfAreas" + timchar + "_StrongestCyclones.pdf")
+plt.savefig("MinPresPdfAreas" + reschar + "_StrongestCyclones.pdf")
 
 #################
 # PDF with min. pressure, only strongest cyclone per family
@@ -1616,7 +1616,7 @@ plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=Fa
 plt.xlabel("Maximum Laplacian of storm")
 plt.ylabel("Count")
 
-plt.savefig("MaxLaplPdfAreas" + timchar + "_StrongestCyclones.pdf")
+plt.savefig("MaxLaplPdfAreas" + reschar + "_StrongestCyclones.pdf")
 
 ############################################################################
 # PDF of month for storms in clusters for each basin
@@ -1724,7 +1724,7 @@ plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=Fa
 plt.xlabel("Month")
 plt.ylabel("Count")
 
-plt.savefig("MonthPdfAreas" + timchar + ".pdf")
+plt.savefig("MonthPdfAreas" + reschar + ".pdf")
 
 ######################################################
 # Save statistics in a file
