@@ -167,12 +167,12 @@ if(Options["checkBasin"]):
     #Check for basin for each storm
     for strm in range(1,np.nanmax(str_id)+1):
         print("Strm " + str(strm))
-        selidxs = (str_id == strm) #& (str_connected == True)
-        lon_temp = str_lon[selidxs] 
-        lat_temp = str_lat[selidxs] 
-        dt_temp = str_dt[selidxs] 
-        wint_temp = (np.array(ext_winter))[selidxs] 
-        swint_temp = (np.array(ext_swinter))[selidxs] 
+        #selidxs = (str_id == strm) #& (str_connected == True)
+        lon_temp = str_lon[ids_storms[uniq_ids[strid]]] 
+        lat_temp = str_lat[ids_storms[uniq_ids[strid]]] 
+        dt_temp = str_dt[ids_storms[uniq_ids[strid]]] 
+        wint_temp = (np.array(ext_winter))[ids_storms[uniq_ids[strid]]]
+        swint_temp = (np.array(ext_swinter))[ids_storms[uniq_ids[strid]]] 
          
         nr_EuroAsia = np.nansum((lon_temp >= 10) & (lon_temp <= 120) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
         nr_America = np.nansum((lon_temp >= 240) & (lon_temp <= 280) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
