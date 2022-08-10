@@ -158,8 +158,8 @@ for clustidx in range(len(sorted_clusters)):
 ######################################################
 # Check which basin storms and clusters belong to
 ######################################################
-ext_winter = [(x.month <= 3) | (x.month >= 10) for x in str_dt]
-ext_swinter = [(x.month >= 4) & (x.month <= 9) for x in str_dt]
+ext_winter = np.array([(x.month <= 3) | (x.month >= 10) for x in str_dt])
+ext_swinter = np.array([(x.month >= 4) & (x.month <= 9) for x in str_dt])
 
 if(Options["checkBasin"]):
     str_basin = np.full(np.nanmax(str_id),"Undefined")
@@ -171,8 +171,8 @@ if(Options["checkBasin"]):
         lon_temp = str_lon[ids_storms[uniq_ids[strid]]] 
         lat_temp = str_lat[ids_storms[uniq_ids[strid]]] 
         dt_temp = str_dt[ids_storms[uniq_ids[strid]]] 
-        wint_temp = (np.array(ext_winter))[ids_storms[uniq_ids[strid]]]
-        swint_temp = (np.array(ext_swinter))[ids_storms[uniq_ids[strid]]] 
+        wint_temp = ext_winter[ids_storms[uniq_ids[strid]]]
+        swint_temp = ext_swinter[ids_storms[uniq_ids[strid]]] 
          
         nr_EuroAsia = np.nansum((lon_temp >= 10) & (lon_temp <= 120) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
         nr_America = np.nansum((lon_temp >= 240) & (lon_temp <= 280) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
