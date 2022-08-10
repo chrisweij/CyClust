@@ -7,6 +7,7 @@ from numpy import loadtxt
 from matplotlib import pyplot as plt
 import yaml
 import time
+import random
 from scipy import stats
 from Cluster_functions import read_file, get_indices_sparse
 
