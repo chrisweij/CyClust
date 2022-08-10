@@ -55,7 +55,17 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + ".npz"
 
 Results = np.load(outfile,allow_pickle=True)
-sorted_clusters = Results["sorted_clusters"]
+try:
+    if(Options["whichClusters"] == "All"):
+        sorted_clusters = Results["sorted_clusters"]
+    elif(Options["whichClusters"] == "length"):
+        sorted_subclusters_length = Results["sorted_subclusters_length"]
+        sorted_clusters =  sorted(unnest(sorted_subclusters_length))
+    elif(Options["whichClusters"] == "nolength"):
+        sorted_subclusters_nolength = Results["sorted_subclusters_nolength"]
+        sorted_clusters =  sorted(unnest(sorted_subclusters_nolength))
+except ValueError:
+        print("Invalid option for whichClusters")
 str_connected = Results['str_connected']
 
 #########################
