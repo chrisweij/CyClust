@@ -9,7 +9,7 @@ import yaml
 import time
 import random
 from scipy import stats
-from Cluster_functions import read_file, get_indices_sparse
+from Cluster_functions import read_file, get_indices_sparse, unnest
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
