@@ -1367,12 +1367,12 @@ for l in range(10):
 
 	#Monte carlo
 	for i in range(10000):
-		TempAll[i] =np.nanmin(random.sample(pres_All,l+1))
-		TempAtlantic[i] =np.nanmin(random.sample(pres_Atlantic,l+1))
-		TempPacific[i] =np.nanmin(random.sample(pres_Pacific,l+1))
-		TempsAtlantic[i] =np.nanmin(random.sample(pres_sAtlantic,l+1))
-		TempsPacific[i] =np.nanmin(random.sample(pres_sPacific,l+1))
-		TempsIndian[i] =np.nanmin(random.sample(pres_sIndian,l+1))
+		TempAll[i] =np.nanmin(random.sample(list(pres_All),l+1))
+		TempAtlantic[i] =np.nanmin(random.sample(list(pres_Atlantic),l+1))
+		TempPacific[i] =np.nanmin(random.sample(list(pres_Pacific),l+1))
+		TempsAtlantic[i] =np.nanmin(random.sample(list(pres_sAtlantic),l+1))
+		TempsPacific[i] =np.nanmin(random.sample(list(pres_sPacific),l+1))
+		TempsIndian[i] =np.nanmin(random.sample(list(pres_sIndian),l+1))
 
 	quantsAll_Expect[l,::] = np.quantile(TempAll,[0.1,0.5,0.9])	
 	quantsAtlantic_Expect[l,::] =  np.quantile(TempAtlantic,[0.1,0.5,0.9])
@@ -1519,12 +1519,12 @@ for l in range(10):
 	TempsIndian = np.zeros(10000)
 
 	for i in range(10000):
-		TempAll[i] =np.nanmax(random.sample(lapl_All,l+1))
-		TempAtlantic[i] =np.nanmax(random.sample(lapl_Atlantic,l+1))
-		TempPacific[i] =np.nanmax(random.sample(lapl_Pacific,l+1))
-		TempsAtlantic[i] =np.nanmax(random.sample(lapl_sAtlantic,l+1))
-		TempsPacific[i] =np.nanmax(random.sample(lapl_sPacific,l+1))
-		TempsIndian[i] =np.nanmax(random.sample(lapl_sIndian,l+1))
+		TempAll[i] =np.nanmax(random.sample(list(lapl_All),l+1))
+		TempAtlantic[i] =np.nanmax(random.sample(list(lapl_Atlantic),l+1))
+		TempPacific[i] =np.nanmax(random.sample(list(lapl_Pacific),l+1))
+		TempsAtlantic[i] =np.nanmax(random.sample(list(lapl_sAtlantic),l+1))
+		TempsPacific[i] =np.nanmax(random.sample(list(lapl_sPacific),l+1))
+		TempsIndian[i] =np.nanmax(random.sample(list(lapl_sIndian),l+1))
 
 	quantsAll_Expect[l,::] = np.quantile(TempAll,[0.1,0.5,0.9])	
 	quantsAtlantic_Expect[l,::] =  np.quantile(TempAtlantic,[0.1,0.5,0.9])
