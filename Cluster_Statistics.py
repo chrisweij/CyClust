@@ -471,109 +471,109 @@ year_sPacific_solo = np.zeros(len(storms_sPacific_solo))
 year_sIndian_solo = np.zeros(len(storms_sIndian_solo))
 
 for strm in range(len(storms_Atlantic)):
-	pres_Atlantic[strm] = np.nanmin(str_pres[str_id == storms_Atlantic[strm]])
-	lapl_Atlantic[strm] = np.nanmax(str_lapl[str_id == storms_Atlantic[strm]])
-	radi_Atlantic[strm] = np.nanmean(str_radi[str_id == storms_Atlantic[strm]])
-	month_Atlantic[strm] = stats.mode(str_month[str_id == storms_Atlantic[strm]])[0]
-	year_Atlantic[strm] = stats.mode(str_year[str_id == storms_Atlantic[strm]])[0]
+	pres_Atlantic[strm] = np.nanmin(str_pres[ids_storms[storms_Atlantic[strm]]])
+	lapl_Atlantic[strm] = np.nanmax(str_lapl[ids_storms[storms_Atlantic[strm]]])
+	radi_Atlantic[strm] = np.nanmean(str_radi[ids_storms[storms_Atlantic[strm]]])
+	month_Atlantic[strm] = stats.mode(str_month[ids_storms[storms_Atlantic[strm]]])[0]
+	year_Atlantic[strm] = stats.mode(str_year[ids_storms[storms_Atlantic[strm]]])[0]
 
 for strm in range(len(storms_Atlantic_clust)):
-	pres_Atlantic_clust[strm] = np.nanmin(str_pres[str_id == storms_Atlantic_clust[strm]])
-	lapl_Atlantic_clust[strm] = np.nanmax(str_lapl[str_id == storms_Atlantic_clust[strm]])
-	radi_Atlantic_clust[strm] = np.nanmean(str_radi[str_id == storms_Atlantic_clust[strm]])
-	month_Atlantic_clust[strm] = stats.mode(str_month[str_id == storms_Atlantic_clust[strm]])[0]
-	year_Atlantic_clust[strm] = stats.mode(str_year[str_id == storms_Atlantic_clust[strm]])[0]
+	pres_Atlantic_clust[strm] = np.nanmin(str_pres[ids_storms[storms_Atlantic_clust[strm]]])
+	lapl_Atlantic_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_Atlantic_clust[strm]]])
+	radi_Atlantic_clust[strm] = np.nanmean(str_radi[ids_storms[storms_Atlantic_clust[strm]]])
+	month_Atlantic_clust[strm] = stats.mode(str_month[ids_storms[storms_Atlantic_clust[strm]]])[0]
+	year_Atlantic_clust[strm] = stats.mode(str_year[ids_storms[storms_Atlantic_clust[strm]]])[0]
 
 for strm in range(len(storms_Atlantic_solo)):
-	pres_Atlantic_solo[strm] = np.nanmin(str_pres[str_id == storms_Atlantic_solo[strm]])
-	lapl_Atlantic_solo[strm] = np.nanmax(str_lapl[str_id == storms_Atlantic_solo[strm]])
-	radi_Atlantic_solo[strm] = np.nanmean(str_radi[str_id == storms_Atlantic_solo[strm]])
-	month_Atlantic_solo[strm] = stats.mode(str_month[str_id == storms_Atlantic_solo[strm]])[0]
-	year_Atlantic_solo[strm] = stats.mode(str_year[str_id == storms_Atlantic_solo[strm]])[0]
+	pres_Atlantic_solo[strm] = np.nanmin(str_pres[ids_storms[storms_Atlantic_solo[strm]]])
+	lapl_Atlantic_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_Atlantic_solo[strm]]])
+	radi_Atlantic_solo[strm] = np.nanmean(str_radi[ids_storms[storms_Atlantic_solo[strm]]])
+	month_Atlantic_solo[strm] = stats.mode(str_month[ids_storms[storms_Atlantic_solo[strm]]])[0]
+	year_Atlantic_solo[strm] = stats.mode(str_year[ids_storms[storms_Atlantic_solo[strm]]])[0]
 
 for strm in range(len(storms_Pacific)):
-	pres_Pacific[strm] = np.nanmin(str_pres[str_id == storms_Pacific[strm]])
-	lapl_Pacific[strm] = np.nanmax(str_lapl[str_id == storms_Pacific[strm]])
-	radi_Pacific[strm] = np.nanmean(str_radi[str_id == storms_Pacific[strm]])
-	month_Pacific[strm] = stats.mode(str_month[str_id == storms_Pacific[strm]])[0]
-	year_Pacific[strm] = stats.mode(str_year[str_id == storms_Pacific[strm]])[0]
+	pres_Pacific[strm] = np.nanmin(str_pres[ids_storms[storms_Pacific[strm]]])
+	lapl_Pacific[strm] = np.nanmax(str_lapl[ids_storms[storms_Pacific[strm]]])
+	radi_Pacific[strm] = np.nanmean(str_radi[ids_storms[storms_Pacific[strm]]])
+	month_Pacific[strm] = stats.mode(str_month[ids_storms[storms_Pacific[strm]]])[0]
+	year_Pacific[strm] = stats.mode(str_year[ids_storms[storms_Pacific[strm]]])[0]
 
 for strm in range(len(storms_Pacific_clust)):
-	pres_Pacific_clust[strm] = np.nanmin(str_pres[str_id == storms_Pacific_clust[strm]])
-	lapl_Pacific_clust[strm] = np.nanmax(str_lapl[str_id == storms_Pacific_clust[strm]])
-	radi_Pacific_clust[strm] = np.nanmean(str_radi[str_id == storms_Pacific_clust[strm]])
-	month_Pacific_clust[strm] = stats.mode(str_month[str_id == storms_Pacific_clust[strm]])[0]
-	year_Pacific_clust[strm] = stats.mode(str_year[str_id == storms_Pacific_clust[strm]])[0]
+	pres_Pacific_clust[strm] = np.nanmin(str_pres[ids_storms[storms_Pacific_clust[strm]]])
+	lapl_Pacific_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_Pacific_clust[strm]]])
+	radi_Pacific_clust[strm] = np.nanmean(str_radi[ids_storms[storms_Pacific_clust[strm]]])
+	month_Pacific_clust[strm] = stats.mode(str_month[ids_storms[storms_Pacific_clust[strm]]])[0]
+	year_Pacific_clust[strm] = stats.mode(str_year[ids_storms[storms_Pacific_clust[strm]]])[0]
 
 for strm in range(len(storms_Pacific_solo)):
-	pres_Pacific_solo[strm] = np.nanmin(str_pres[str_id == storms_Pacific_solo[strm]])
-	lapl_Pacific_solo[strm] = np.nanmax(str_lapl[str_id == storms_Pacific_solo[strm]])
-	radi_Pacific_solo[strm] = np.nanmean(str_radi[str_id == storms_Pacific_solo[strm]])
-	month_Pacific_solo[strm] = stats.mode(str_month[str_id == storms_Pacific_solo[strm]])[0]
-	year_Pacific_solo[strm] = stats.mode(str_year[str_id == storms_Pacific_solo[strm]])[0]
+	pres_Pacific_solo[strm] = np.nanmin(str_pres[ids_storms[storms_Pacific_solo[strm]]])
+	lapl_Pacific_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_Pacific_solo[strm]]])
+	radi_Pacific_solo[strm] = np.nanmean(str_radi[ids_storms[storms_Pacific_solo[strm]]])
+	month_Pacific_solo[strm] = stats.mode(str_month[ids_storms[storms_Pacific_solo[strm]]])[0]
+	year_Pacific_solo[strm] = stats.mode(str_year[ids_storms[storms_Pacific_solo[strm]]])[0]
 
 for strm in range(len(storms_sAtlantic)):
-	pres_sAtlantic[strm] = np.nanmin(str_pres[str_id == storms_sAtlantic[strm]])
-	lapl_sAtlantic[strm] = np.nanmax(str_lapl[str_id == storms_sAtlantic[strm]])
-	radi_sAtlantic[strm] = np.nanmean(str_radi[str_id == storms_sAtlantic[strm]])
-	month_sAtlantic[strm] = stats.mode(str_month[str_id == storms_sAtlantic[strm]])[0]
-	year_sAtlantic[strm] = stats.mode(str_year[str_id == storms_sAtlantic[strm]])[0]
+	pres_sAtlantic[strm] = np.nanmin(str_pres[ids_storms[storms_sAtlantic[strm]]])
+	lapl_sAtlantic[strm] = np.nanmax(str_lapl[ids_storms[storms_sAtlantic[strm]]])
+	radi_sAtlantic[strm] = np.nanmean(str_radi[ids_storms[storms_sAtlantic[strm]]])
+	month_sAtlantic[strm] = stats.mode(str_month[ids_storms[storms_sAtlantic[strm]]])[0]
+	year_sAtlantic[strm] = stats.mode(str_year[ids_storms[storms_sAtlantic[strm]]])[0]
 
 for strm in range(len(storms_sAtlantic_clust)):
-	pres_sAtlantic_clust[strm] = np.nanmin(str_pres[str_id == storms_sAtlantic_clust[strm]])
-	lapl_sAtlantic_clust[strm] = np.nanmax(str_lapl[str_id == storms_sAtlantic_clust[strm]])
-	radi_sAtlantic_clust[strm] = np.nanmean(str_radi[str_id == storms_sAtlantic_clust[strm]])
-	month_sAtlantic_clust[strm] = stats.mode(str_month[str_id == storms_sAtlantic_clust[strm]])[0]
-	year_sAtlantic_clust[strm] = stats.mode(str_year[str_id == storms_sAtlantic_clust[strm]])[0]
+	pres_sAtlantic_clust[strm] = np.nanmin(str_pres[ids_storms[storms_sAtlantic_clust[strm]]])
+	lapl_sAtlantic_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_sAtlantic_clust[strm]]])
+	radi_sAtlantic_clust[strm] = np.nanmean(str_radi[ids_storms[storms_sAtlantic_clust[strm]]])
+	month_sAtlantic_clust[strm] = stats.mode(str_month[ids_storms[storms_sAtlantic_clust[strm]]])[0]
+	year_sAtlantic_clust[strm] = stats.mode(str_year[ids_storms[storms_sAtlantic_clust[strm]]])[0]
 
 for strm in range(len(storms_sAtlantic_solo)):
-	pres_sAtlantic_solo[strm] = np.nanmin(str_pres[str_id == storms_sAtlantic_solo[strm]])
-	lapl_sAtlantic_solo[strm] = np.nanmax(str_lapl[str_id == storms_sAtlantic_solo[strm]])
-	radi_sAtlantic_solo[strm] = np.nanmean(str_radi[str_id == storms_sAtlantic_solo[strm]])
-	month_sAtlantic_solo[strm] = stats.mode(str_month[str_id == storms_sAtlantic_solo[strm]])[0]
-	year_sAtlantic_solo[strm] = stats.mode(str_year[str_id == storms_sAtlantic_solo[strm]])[0]
+	pres_sAtlantic_solo[strm] = np.nanmin(str_pres[ids_storms[storms_sAtlantic_solo[strm]]])
+	lapl_sAtlantic_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_sAtlantic_solo[strm]]])
+	radi_sAtlantic_solo[strm] = np.nanmean(str_radi[ids_storms[storms_sAtlantic_solo[strm]]])
+	month_sAtlantic_solo[strm] = stats.mode(str_month[ids_storms[storms_sAtlantic_solo[strm]]])[0]
+	year_sAtlantic_solo[strm] = stats.mode(str_year[ids_storms[storms_sAtlantic_solo[strm]]])[0]
 
 for strm in range(len(storms_sPacific)):
-	pres_sPacific[strm] = np.nanmin(str_pres[str_id == storms_sPacific[strm]])
-	lapl_sPacific[strm] = np.nanmax(str_lapl[str_id == storms_sPacific[strm]])
-	radi_sPacific[strm] = np.nanmean(str_radi[str_id == storms_sPacific[strm]])
-	month_sPacific[strm] = stats.mode(str_month[str_id == storms_sPacific[strm]])[0]
-	year_sPacific[strm] = stats.mode(str_year[str_id == storms_sPacific[strm]])[0]
+	pres_sPacific[strm] = np.nanmin(str_pres[ids_storms[storms_sPacific[strm]]])
+	lapl_sPacific[strm] = np.nanmax(str_lapl[ids_storms[storms_sPacific[strm]]])
+	radi_sPacific[strm] = np.nanmean(str_radi[ids_storms[storms_sPacific[strm]]])
+	month_sPacific[strm] = stats.mode(str_month[ids_storms[storms_sPacific[strm]]])[0]
+	year_sPacific[strm] = stats.mode(str_year[ids_storms[storms_sPacific[strm]]])[0]
 
 for strm in range(len(storms_sPacific_clust)):
-	pres_sPacific_clust[strm] = np.nanmin(str_pres[str_id == storms_sPacific_clust[strm]])
-	lapl_sPacific_clust[strm] = np.nanmax(str_lapl[str_id == storms_sPacific_clust[strm]])
-	radi_sPacific_clust[strm] = np.nanmean(str_radi[str_id == storms_sPacific_clust[strm]])
-	month_sPacific_clust[strm] = stats.mode(str_month[str_id == storms_sPacific_clust[strm]])[0]
-	year_sPacific_clust[strm] = stats.mode(str_year[str_id == storms_sPacific_clust[strm]])[0]
+	pres_sPacific_clust[strm] = np.nanmin(str_pres[ids_storms[storms_sPacific_clust[strm]]])
+	lapl_sPacific_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_sPacific_clust[strm]]])
+	radi_sPacific_clust[strm] = np.nanmean(str_radi[ids_storms[storms_sPacific_clust[strm]]])
+	month_sPacific_clust[strm] = stats.mode(str_month[ids_storms[storms_sPacific_clust[strm]]])[0]
+	year_sPacific_clust[strm] = stats.mode(str_year[ids_storms[storms_sPacific_clust[strm]]])[0]
 
 for strm in range(len(storms_sPacific_solo)):
-	pres_sPacific_solo[strm] = np.nanmin(str_pres[str_id == storms_sPacific_solo[strm]])
-	lapl_sPacific_solo[strm] = np.nanmax(str_lapl[str_id == storms_sPacific_solo[strm]])
-	radi_sPacific_solo[strm] = np.nanmean(str_radi[str_id == storms_sPacific_solo[strm]])
-	month_sPacific_solo[strm] = stats.mode(str_month[str_id == storms_sPacific_solo[strm]])[0]
-	year_sPacific_solo[strm] = stats.mode(str_year[str_id == storms_sPacific_solo[strm]])[0]
+	pres_sPacific_solo[strm] = np.nanmin(str_pres[ids_storms[storms_sPacific_solo[strm]]])
+	lapl_sPacific_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_sPacific_solo[strm]]])
+	radi_sPacific_solo[strm] = np.nanmean(str_radi[ids_storms[storms_sPacific_solo[strm]]])
+	month_sPacific_solo[strm] = stats.mode(str_month[ids_storms[storms_sPacific_solo[strm]]])[0]
+	year_sPacific_solo[strm] = stats.mode(str_year[ids_storms[storms_sPacific_solo[strm]]])[0]
 
 for strm in range(len(storms_sIndian)):
-	pres_sIndian[strm] = np.nanmin(str_pres[str_id == storms_sIndian[strm]])
-	lapl_sIndian[strm] = np.nanmax(str_lapl[str_id == storms_sIndian[strm]])
-	radi_sIndian[strm] = np.nanmean(str_radi[str_id == storms_sIndian[strm]])
-	month_sIndian[strm] = stats.mode(str_month[str_id == storms_sIndian[strm]])[0]
-	year_sIndian[strm] = stats.mode(str_year[str_id == storms_sIndian[strm]])[0]
+	pres_sIndian[strm] = np.nanmin(str_pres[ids_storms[storms_sIndian[strm]]])
+	lapl_sIndian[strm] = np.nanmax(str_lapl[ids_storms[storms_sIndian[strm]]])
+	radi_sIndian[strm] = np.nanmean(str_radi[ids_storms[storms_sIndian[strm]]])
+	month_sIndian[strm] = stats.mode(str_month[ids_storms[storms_sIndian[strm]]])[0]
+	year_sIndian[strm] = stats.mode(str_year[ids_storms[storms_sIndian[strm]]])[0]
 
 for strm in range(len(storms_sIndian_clust)):
-	pres_sIndian_clust[strm] = np.nanmin(str_pres[str_id == storms_sIndian_clust[strm]])
-	lapl_sIndian_clust[strm] = np.nanmax(str_lapl[str_id == storms_sIndian_clust[strm]])
-	radi_sIndian_clust[strm] = np.nanmean(str_radi[str_id == storms_sIndian_clust[strm]])
-	month_sIndian_clust[strm] = stats.mode(str_month[str_id == storms_sIndian_clust[strm]])[0]
-	year_sIndian_clust[strm] = stats.mode(str_year[str_id == storms_sIndian_clust[strm]])[0]
+	pres_sIndian_clust[strm] = np.nanmin(str_pres[ids_storms[storms_sIndian_clust[strm]]])
+	lapl_sIndian_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_sIndian_clust[strm]]])
+	radi_sIndian_clust[strm] = np.nanmean(str_radi[ids_storms[storms_sIndian_clust[strm]]])
+	month_sIndian_clust[strm] = stats.mode(str_month[ids_storms[storms_sIndian_clust[strm]]])[0]
+	year_sIndian_clust[strm] = stats.mode(str_year[ids_storms[storms_sIndian_clust[strm]]])[0]
 
 for strm in range(len(storms_sIndian_solo)):
-	pres_sIndian_solo[strm] = np.nanmin(str_pres[str_id == storms_sIndian_solo[strm]])
-	lapl_sIndian_solo[strm] = np.nanmax(str_lapl[str_id == storms_sIndian_solo[strm]])
-	radi_sIndian_solo[strm] = np.nanmean(str_radi[str_id == storms_sIndian_solo[strm]])
-	month_sIndian_solo[strm] = stats.mode(str_month[str_id == storms_sIndian_solo[strm]])[0]
-	year_sIndian_solo[strm] = stats.mode(str_year[str_id == storms_sIndian_solo[strm]])[0]
+	pres_sIndian_solo[strm] = np.nanmin(str_pres[ids_storms[storms_sIndian_solo[strm]]])
+	lapl_sIndian_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_sIndian_solo[strm]]])
+	radi_sIndian_solo[strm] = np.nanmean(str_radi[ids_storms[storms_sIndian_solo[strm]]])
+	month_sIndian_solo[strm] = stats.mode(str_month[ids_storms[storms_sIndian_solo[strm]]])[0]
+	year_sIndian_solo[strm] = stats.mode(str_year[ids_storms[storms_sIndian_solo[strm]]])[0]
 
 pres_All = np.hstack((pres_Atlantic,pres_Pacific,pres_sAtlantic,pres_sPacific,pres_sIndian))
 length_All = np.hstack((length_Atlantic,length_Pacific,length_sAtlantic,length_sPacific,length_sIndian))
