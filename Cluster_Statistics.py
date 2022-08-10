@@ -175,6 +175,8 @@ ext_swinter = np.array([(x.month >= 4) & (x.month <= 9) for x in str_dt])
 if(Options["checkBasin"]):
     str_basin = np.full(np.nanmax(str_id),"Undefined")
     str_hemis = np.full(np.nanmax(str_id),"Undefined")
+    str_first = np.full(np.nanmax(str_id),dt(9999,12,1,0))
+    
     #Check for basin for each storm
     for strm in uniq_ids:
         print("Strm " + str(strm))
@@ -184,6 +186,12 @@ if(Options["checkBasin"]):
         dt_temp = str_dt[ids_storms[strm]] 
         wint_temp = ext_winter[ids_storms[strm]]
         swint_temp = ext_swinter[ids_storms[strm]]
+        conn_temp = str_connected[ids_storms[strm]]
+        
+        
+        
+        if(np.any(conn_temp !=0)):
+            str_first[strm -1] = np.nanmin(dt_temp[conn_temp >0])
          
         nr_EuroAsia = np.nansum((lon_temp >= 10) & (lon_temp <= 120) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
         nr_America = np.nansum((lon_temp >= 240) & (lon_temp <= 280) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
@@ -1726,8 +1734,32 @@ plt.ylabel("Count")
 
 plt.savefig("MonthPdfAreas" + reschar + ".pdf")
 
+
+##############
+#
+#
+lapl_first = []
+lapl_second = []
+lapl_third = []
+lapl_fourth = []
+lapl_solo = []
+for cluster in sorted_clusters:
+    ids_sorted = np.argsort(str_first[[i -1 for i in cluster]])
+    cluster_sorted = np.array(cluster)[ids_sorted]
+    lapl_sorted = maxlapl[[np.where(uniq_ids == i)[0][0] for i in cluster_sorted]]
+    
+    if(len(cluster) > 1):
+        lapl_first.append(lapl_sorted[0])
+        lapl_second.extend(lapl_sorted[1])
+    if(len(cluster) > 2):
+        lapl_third.append(lapl_sorted[2])
+    if(len(cluster) > 3):
+        lapl_fourth.extend(lapl_sorted[3:])
+    else:
+        lapl_solo.append(lapl_sorted[0])
 ######################################################
 # Save statistics in a file
 ######################################################
 outfile_stats = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_stats.npz"
 np.savez(outfile_stats,minpres=minpres,maxlapl=maxlapl,  maxdldt=maxdldt,mindpdt=mindpdt, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint)
+
