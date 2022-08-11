@@ -14,7 +14,6 @@ from dynlib.metio import metopen, metsave, get_instantaneous
 import matplotlib.dates as mdates 
 
 import dynlib.diag
-from dynlib import sphere
 from collections import namedtuple
 #import xarray as xr
 import scipy.interpolate as ip
@@ -29,6 +28,7 @@ from numpy import loadtxt
 import dynlib.figures as fig
 import yaml
 #execfile("projection.py")
+from Cluster_functions import read_file, get_indices_sparse, unnest
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
@@ -191,7 +191,7 @@ str_reltime     = np.zeros(len(str_lon))
 str_reltimestep = np.zeros(len(str_lon))
 str_reltimestepAtl = np.zeros(len(str_lon))
 str_isclustered = np.zeros(len(str_lon))
-str_rot         = np.zeros(len(str_lon))s
+str_rot         = np.zeros(len(str_lon))
     
 #########################
 # Get indices of storms 
@@ -229,8 +229,8 @@ if(calcDensity):
 		dist_temp = dist_thresh
 
 	#Loop over storms
-	for stridx in range(1,nr_storms+1): #clust_idxs: #range(1,nr_storms+1):
-		print("Storm: " + str(stridx))
+	for strid in range(nr_storms): #clust_idxs: #range(1,nr_storms+1):
+		print("Storm: " + str(strid))
 		temp_lat = str_lat[ids_storms[uniq_ids[strid]]]
 		temp_lon = str_lon[ids_storms[uniq_ids[strid]]]
 		temp_dt  = str_dt[ids_storms[uniq_ids[strid]]]
@@ -244,8 +244,8 @@ if(calcDensity):
 		#minpresidx = np.nanargmin(temp_pres)
 		mindpdtidx = np.nanargmin(temp_dpdt)
 		minpresidx = np.nanargmin(temp_pres)
-		str_reltime[str_id == stridx] =  np.arange(0,len(temp_lat))*0.25 - minpresidx *0.25
-		str_reltimestep[str_id == stridx] =  np.arange(0,len(temp_lat)) - minpresidx
+		str_reltime[ids_storms[uniq_ids[strid]]] =  np.arange(0,len(temp_lat))*0.25 - minpresidx *0.25
+		str_reltimestep[ids_storms[uniq_ids[strid]]] =  np.arange(0,len(temp_lat)) - minpresidx
 		temp_rot = np.zeros(len(temp_lat))
 		#temp_connected = str_connected[str_id == stridx]
 
