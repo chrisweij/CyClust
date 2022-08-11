@@ -142,10 +142,10 @@ conf.gridsize = (121,240) #(60,240)
 
 lats = np.arange(90,-90.1,-1.5)
 lons = np.arange(-180,180,1.5)
+
 #########################
 # Load storm tracks
 #########################
-
 
 #Storm tracks file
 #st_file = "stormtracks_LTs.txt"
@@ -221,6 +221,15 @@ for yidx in range(1979,2017):
 
 	dt_array_temp = np.array([start + td(hours=i*6) for i in range(nr_times)])
 	dt_array.extend(dt_array_temp)
+    
+#########################
+# Get indices of storms 
+# so that ids_storms[id] gives the ids in the arrays
+# str_id, str_lon,.. belonging to that specific storm
+#########################
+uniq_ids = np.unique(str_id)
+ids_storms = get_indices_sparse(str_id)
+nrstorms = len(uniq_ids)
 
 #####################################################
 # 1. Determine storm density
@@ -251,14 +260,14 @@ if(calcDensity):
 	#Loop over storms
 	for stridx in range(1,nr_storms+1): #clust_idxs: #range(1,nr_storms+1):
 		print("Storm: " + str(stridx))
-		temp_lat = str_lat[str_id == stridx]
-		temp_lon = str_lon[str_id == stridx]
-		temp_dt  = str_dt[str_id == stridx]
-		temp_pres = str_pres[str_id == stridx]
-		temp_lapl = str_lapl[str_id == stridx]
+		temp_lat = str_lat[ids_storms[uniq_ids[strid]]]
+		temp_lon = str_lon[ids_storms[uniq_ids[strid]]]
+		temp_dt  = str_dt[ids_storms[uniq_ids[strid]]]
+		temp_pres = str_pres[ids_storms[uniq_ids[strid]]]
+		temp_lapl = str_lapl[ids_storms[uniq_ids[strid]]]
 		temp_minpres = np.nanmin(temp_pres)
-		temp_maxlapl = np.nanmax(str_lapl[str_id == stridx])
-		temp_meanlapl = np.nanmean(str_lapl[str_id == stridx])
+		temp_maxlapl = np.nanmax(str_lapl[ids_storms[uniq_ids[strid]]])
+		temp_meanlapl = np.nanmean(str_lapl[ids_storms[uniq_ids[strid]]]) #str_lapl[str_id == stridx]
 		temp_dpdt = np.zeros(len(temp_pres))
 		temp_dpdt[1:-1] = temp_pres[2:] - temp_pres[:-2]
 		#minpresidx = np.nanargmin(temp_pres)
