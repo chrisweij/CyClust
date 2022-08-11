@@ -1317,7 +1317,7 @@ plt.ylabel("Count")
 plt.savefig("MaxlaplPdfAreas" + reschar + ".pdf")
 
 
-
+'''
 #################
 # PDF with min. pressure, only strongest cyclone per family
 #################
@@ -1734,7 +1734,7 @@ plt.ylabel("Count")
 
 plt.savefig("MonthPdfAreas" + reschar + ".pdf")
 
-
+'''
 ##############
 #
 #
@@ -1742,21 +1742,61 @@ lapl_first = []
 lapl_second = []
 lapl_third = []
 lapl_fourth = []
+lapl_last = []
+lapl_scndlast = []
 lapl_solo = []
+
+reltim = []
+lapl_all = []
 for cluster in sorted_clusters:
     ids_sorted = np.argsort(str_first[[i -1 for i in cluster]])
     cluster_sorted = np.array(cluster)[ids_sorted]
     lapl_sorted = maxlapl[[np.where(uniq_ids == i)[0][0] for i in cluster_sorted]]
     
+
+    relaxis = np.linspace(0,1,len(cluster))
+    if(len(cluster) > 1):
+        reltim.extend(relaxis)
+        lapl_all.extend(lapl_sorted)
+
     if(len(cluster) > 1):
         lapl_first.append(lapl_sorted[0])
-        lapl_second.extend(lapl_sorted[1])
+        lapl_second.append(lapl_sorted[1])
+        lapl_last.append(lapl_sorted[-1])
     if(len(cluster) > 2):
         lapl_third.append(lapl_sorted[2])
+        lapl_scndlast.append(lapl_sorted[-2])
     if(len(cluster) > 3):
         lapl_fourth.extend(lapl_sorted[3:])
     else:
         lapl_solo.append(lapl_sorted[0])
+
+
+quantiles = [0.1,0.5,0.9]
+print(np.quantile(lapl_first,quantiles))
+print(np.quantile(lapl_second,quantiles))
+print(np.quantile(lapl_third,quantiles))
+print(np.quantile(lapl_fourth,quantiles))
+print(np.quantile(lapl_solo,quantiles))
+print(np.quantile(lapl_last,quantiles))
+print(np.quantile(lapl_scndlast,quantiles))
+
+bins = np.linspace(0, 5, 11)
+#Figure
+plt.figure()
+plt.hist([lapl_first,lapl_second,lapl_third], bins, alpha=0.5, label=['First','Second','Third+'])
+#plt.hist(lapl_second, bins, alpha=0.5, label='Second')
+#plt.hist(lapl_third, bins, alpha=0.5, label='Third')
+plt.legend(loc='upper right')
+plt.savefig("HistogramLaplCyclones" + reschar + ".pdf")
+
+plt.figure()
+plt.hist([lapl_first,lapl_second,lapl_third], bins, alpha=0.5, label=['First','Second','Third+'],density=True)
+#plt.hist(lapl_second, bins, alpha=0.5, label='Second')
+#plt.hist(lapl_third, bins, alpha=0.5, label='Third')
+plt.legend(loc='upper right')
+plt.savefig("HistogramLaplCyclones" + reschar + "_relative.pdf")
+
 ######################################################
 # Save statistics in a file
 ######################################################
