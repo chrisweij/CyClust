@@ -27,7 +27,11 @@ import matplotlib as mpl
 import numpy as np
 from numpy import loadtxt
 import dynlib.figures as fig
+import yaml
 #execfile("projection.py")
+
+with open("Options.yaml") as f:
+    Options = yaml.safe_load(f)
 
 #Add directories to path
 conf.datapath.insert(0,"/Data/gfi/spengler/cwe022/EI/slope_avg/")
@@ -144,64 +148,24 @@ lats = np.arange(90,-90.1,-1.5)
 lons = np.arange(-180,180,1.5)
 
 #########################
-# Load storm tracks
+# Load storm tracks 
 #########################
 
 #Storm tracks file
-#st_file = "stormtracks_LTs.txt"
-#st_file = "tracks_NH.txt"
-if(datachar == "EI"):
-	st_file = "/home/cwe022/dynlib/examples/Selected_tracks_1979to2016_0101to1231_ei_Globe_Leonidas_with_stationary"
-elif(datachar == "LeonidasAll"):
-	st_file = "/home/cwe022/dynlib/examples/Selected_tracks_1979to2016_0101to1231_ei_Globe_Leonidas_with_stationary_all"
-elif(datachar == "New_namelist"):
-	st_file = "/Data/gfi/spengler/cwe022/TRACKS/Selected_tracks_1979to2016_0101to1231_ei_Globe_New_namelist_with_stationary"
-elif(datachar == "New_namelistAll"):
-	st_file = "/Data/gfi/spengler/cwe022/TRACKS/Selected_tracks_1979to2016_0101to1231_ei_Globe_New_namelist_with_stationary_all"
-#st_file = "Tracks_Pinto_Final"
-#st_file = "Selected_tracks_1979to2016_1201to0228_EI_IMILAST"
+st_file = Options["st_file"]
+nrskip = Options["nrskip"]
 
-if(st_file == "tracks_NH.txt"):
-	nrskip = 1
-	str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
-	str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
-	str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
-	str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
-	str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
-else:
-	nrskip = 0
-	str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
-	str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
-	str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
-	str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
-	str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
-
-str_pres = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[5],dtype=float)
-str_lapl = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[6],dtype=float)
-#f = open('/Data/gfi/spengler/cwe022/file_3.txt', 'r')
-
-#datachar = "New_namelistTest"
-
-
-#Determine datetime array for the tracks
-str_dt = []
-str_mon = []
-for idx in range(len(str_date)):
-	year = int(str(str_date[idx])[:4])
-	month = int(str(str_date[idx])[4:6])
-	day   = int(str(str_date[idx])[6:8])
-	hour   = int(str(str_date[idx])[8:10])
-	str_mon.append(month)
-	str_dt.append(dt(year,month,day,hour))
+str_id, str_nr, str_dt, str_lat, str_lon = read_file(st_file)
+str_pres   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[5],dtype=float)
+str_lapl   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[9],dtype=float)
 
 #Convert to an array
 str_dt          = np.array(str_dt)
-str_mon         = np.array(str_mon)
-str_reltime     = np.zeros(len(str_lon))
-str_reltimestep = np.zeros(len(str_lon))
-str_reltimestepAtl = np.zeros(len(str_lon))
-str_isclustered = np.zeros(len(str_lon))
-str_rot         = np.zeros(len(str_lon))
+str_month = np.array([x.month for x in str_dt])
+str_year = np.array([x.year for x in str_dt])
+#str_id = str_id - np.nanmin(str_id) + 1
+
+nrstorms = len(np.unique(str_id))
 
 #Construct array with datetimes
 dt_array = []
@@ -221,6 +185,13 @@ for yidx in range(1979,2017):
 
 	dt_array_temp = np.array([start + td(hours=i*6) for i in range(nr_times)])
 	dt_array.extend(dt_array_temp)
+    
+#Convert to an array
+str_reltime     = np.zeros(len(str_lon))
+str_reltimestep = np.zeros(len(str_lon))
+str_reltimestepAtl = np.zeros(len(str_lon))
+str_isclustered = np.zeros(len(str_lon))
+str_rot         = np.zeros(len(str_lon))s
     
 #########################
 # Get indices of storms 
