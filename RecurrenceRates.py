@@ -269,8 +269,6 @@ if(calcDensity):
 							dist_temp = calc_Rossby_radius(lat=20.0)
 					if(np.abs(temp_lat[tridx] - lats[latidx]) <= dist_temp/111): 
 						for lonidx in range(len(lons)):
-								#difflon = np.nanmin([np.abs(temp_lon[tridx] -lons[lonidx]),np.abs((temp_lon[tridx] -lons[lonidx])%360.0)]) 
-								#if(difflon*np.cos(lats[latidx]*np.pi/180.0) < 5.0):
 								#Calculate distance to grid point
 								dist = great_circle(temp_lat[tridx],temp_lon[tridx], lats[latidx],lons[lonidx])
 
