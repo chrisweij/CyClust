@@ -3,7 +3,6 @@
 
 #from dynlib.shorthands import dt, td, get_instantaneous, metsave, fig, np
 from dynlib.settings import proj
-
 from dynlib.context.erainterim import conf
 import dynlib.context.derived
 from scipy.ndimage.filters import gaussian_filter
@@ -21,11 +20,11 @@ import scipy.interpolate as ip
 import copy
 import matplotlib 
 matplotlib.use("agg")
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+#import matplotlib.pyplot as plt
+#import matplotlib as mpl
 import numpy as np
 from numpy import loadtxt
-import dynlib.figures as fig
+#import dynlib.figures as fig
 import yaml
 #execfile("projection.py")
 from Cluster_functions import read_file, get_indices_sparse, unnest
@@ -49,7 +48,8 @@ dist_thresh = 250
 slope_bins = np.arange(0,18,0.25)
 
 #Plotting path
-conf.plotpath = "/home/cwe022/dynlib/examples/pinto_plots/"
+#conf.plotpath = "/home/cwe022/dynlib/examples/pinto_plots/"
+conf.plotpath = '/home/WUR/weije043/scripts/python/CyClust/Plots'
 
 #Switches
 calcDensity = True
@@ -353,10 +353,44 @@ if(calcDensity):
 	mean_lysis = np.nanmean(lysis,axis=0)
 	mean_mindpdt = np.nanmean(storms_mindpdt,axis=0)
 	mean_minpres = np.nanmean(storms_minpres,axis=0)
-	outfile ="/Data/gfi/spengler/cwe022/Density_" + datachar + "_" + distchar + ".npz"
+	
+	mean_storms_seas = np.zeros((4,121,240))
+	mean_tracks_seas = np.zeros((4,121,240))
+	mean_genesis_seas = np.zeros((4,121,240))
+	mean_lysis_seas = np.zeros((4,121,240))
+	mean_mindpdt_seas = np.zeros((4,121,240))
+	mean_minpres_seas = np.zeros((4,121,240))
+	
+	## seasonal differences ##
+	seasons = ["DJF","MAM","JJA","SON"]
+	i=0
+	for season in seasons:
+		months = np.array([x.month for x in dt_array])
+		if(season == "DJF"):
+			selidxs = (months < 3) | (months >= 12)
+		elif(season == "MAM"):
+			selidxs = (months < 6) | (months >= 3)
+		elif(season == "JJA"):
+			selidxs = (months < 9) | (months >= 6)
+		elif(season == "SON"):
+			selidxs = (months < 12) | (months >= 8)
+
+		mean_storms_seas[i,::] = np.nanmean(storms[selidxs,::],axis=0)
+		mean_tracks_seas[i,::] = np.nanmean(tracks[selidxs,::],axis=0)
+		if(calcDensity):
+			mean_genesis_seas[i,::] = np.nanmean(genesis[selidxs,::],axis=0)
+			mean_lysis_seas[i,::]   = np.nanmean(lysis[selidxs,::],axis=0)
+			mean_mindpdt_seas[i,::] = np.nanmean(storms_mindpdt,axis=0)
+			mean_minpres_seas[i,::] = np.nanmean(storms_minpres,axis=0)	
+		i+=1 
+	
+	#outfile ="/Data/gfi/spengler/cwe022/Density_" + datachar + "_" + distchar + ".npz"
+	outfile="/home/WUR/weije043/scripts/python/CyClust/ResultsTracks/Density_" + datachar + "_" + distchar + ".npz"
 	#np.savez(outfile, storms=storms, tracks=tracks,mean_storms=mean_storms, #genesis= genesis,lysis=lysis,
 	#mean_tracks=mean_tracks,mean_genesis=mean_genesis,mean_lysis=mean_lysis, mean_mindpdt= mean_mindpdt, mean_minpres=mean_minpres)
-	np.savez(outfile, mean_storms=mean_storms, mean_tracks=mean_tracks,mean_genesis=mean_genesis,mean_lysis=mean_lysis)
+	np.savez(outfile, mean_storms=mean_storms, mean_tracks=mean_tracks,mean_genesis=mean_genesis,mean_lysis=mean_lysis,
+	mean_storms_seas=mean_storms_seas,mean_tracks_seas=mean_tracks_seas,mean_genesis_seas=mean_genesis_seas,
+	mean_lysis_seas=mean_lysis_seas,mean_mindpdt_seas=mean_mindpdt_seas,mean_minpres_seas=mean_minpres_seas)
 else:
 	#outfile ="/Data/gfi/spengler/cwe022/Densisty.npz"
 	outfile ="/Data/gfi/spengler/cwe022/Density_" + datachar + "_" + distchar + ".npz"
@@ -453,7 +487,7 @@ if(plotDensities):
 
 	## seasonal differences ##
 	seasons = ["DJF","MAM","JJA","SON"]
-
+	
 	for season in seasons:
 		months = np.array([x.month for x in dt_array])
 		if(season == "DJF"):

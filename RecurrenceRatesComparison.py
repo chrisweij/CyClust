@@ -14,7 +14,7 @@ from dynlib.metio import metopen, metsave, get_instantaneous
 import matplotlib.dates as mdates 
 
 import dynlib.diag
-from dynlib import sphere
+#from dynlib import sphere
 from collections import namedtuple
 #import xarray as xr
 import scipy.interpolate as ip
@@ -27,6 +27,7 @@ import matplotlib as mpl
 import numpy as np
 from numpy import loadtxt
 import dynlib.figures as fig
+from Cluster_functions import unnest
 #execfile("projection.py")
 
 #Add directories to path
@@ -38,11 +39,11 @@ conf.datapath.insert(0,"//Data/gfi/spengler/cwe022/EI/other_avg/press_perctl/")
 
 #Options
 datachar = "Leonidas" #"LeonidasAll"
-distchar = "Rossby"
-#distchar = "250km"
+#distchar = "Rossby"
+distchar = "250km"
 dist_thresh = 250 #500 700
 #datachar = "New_namelist"
-datachar = "New_namelistAll"
+datachar = "AllClusters" #"LengthClusters" #"AllClusters" #"NoLengthClusters" # "LengthClusters" #"NoLengthClusters"
 selyear = 2013
 
 lng_thresh = "1.5"
@@ -52,12 +53,13 @@ tim_thresh = "36.0"
 slope_bins = np.arange(0,18,0.25)
 
 #Plotting path
-conf.plotpath = "/home/cwe022/dynlib/examples/pinto_plots/"
+#conf.plotpath = "/home/cwe022/dynlib/examples/pinto_plots/"
+conf.plotpath = '/home/WUR/weije043/scripts/python/CyClust/Plots/'
 
 #Switches
 calcDensity = True
-plotDensities = False
-
+plotDensities = True
+compare_with2013 = False
 
 Rearth = 6366.0e3
 
@@ -181,8 +183,6 @@ def calmap(ax, year, data):
 
 
 
-
-
 ###
 from dateutil.relativedelta import relativedelta 
 from matplotlib.patches import Polygon 
@@ -262,10 +262,9 @@ lats = np.arange(90,-90.1,-1.5)
 lons = np.arange(-180,180,1.5)
 
 #Read pressure pctl
-
-nc, pres_pctl, presgrid = dynlib.metio.metopen("yseaspctl_slp.nc", q="msl")
-
-pres_pctl = pres_pctl[:,::3,::3]
+if(compare_with2013):
+    nc, pres_pctl, presgrid = dynlib.metio.metopen("yseaspctl_slp.nc", q="msl")
+    pres_pctl = pres_pctl[:,::3,::3]
 
 #########################
 # Load storm tracks
@@ -284,6 +283,8 @@ elif(datachar == "New_namelist"):
 elif(datachar == "New_namelistAll"):
 	st_file = "/Data/gfi/spengler/cwe022/TRACKS/Selected_tracks_1979to2016_0101to1231_ei_Globe_New_namelist_with_stationary_all"
 st_file = "test_tracks"
+
+st_file = "/home/WUR/weije043/scripts/tracking_scripts/Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
 #st_file = "Tracks_Pinto_Final"
 #st_file = "Selected_tracks_1979to2016_1201to0228_EI_IMILAST"
 
@@ -295,7 +296,7 @@ if(st_file == "tracks_NH.txt"):
 	str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
 	str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
 else:
-	nrskip = 0
+	nrskip = 1
 	str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
 	str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
 	str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
@@ -328,15 +329,15 @@ str_mon         = np.array(str_mon)
 str_year 	= np.array(str_year)
 
 #Select specific season
-selidxs = (((str_year == selyear) & (str_mon >= 10)) | ((str_year == selyear + 1) & (str_mon <= 3))) 
-str_id = str_id[selidxs]
-str_dt = str_dt[selidxs]
-str_nr = str_nr[selidxs]
-str_mon = str_mon[selidxs]
-str_lon = str_lon[selidxs]
-str_lat = str_lat[selidxs]
-str_pres = str_pres[selidxs]
-str_lapl = str_lapl[selidxs]
+#selidxs = (((str_year == selyear) & (str_mon >= 10)) | ((str_year == selyear + 1) & (str_mon <= 3))) 
+#str_id = str_id[selidxs]
+#str_dt = str_dt[selidxs]
+#str_nr = str_nr[selidxs]
+#str_mon = str_mon[selidxs]
+#str_lon = str_lon[selidxs]
+#str_lat = str_lat[selidxs]
+#str_pres = str_pres[selidxs]
+#str_lapl = str_lapl[selidxs]
 
 #Define result arrays
 str_reltime     = np.zeros(len(str_lon))
@@ -347,7 +348,7 @@ str_rot         = np.zeros(len(str_lon))
 
 #Construct array with datetimes
 dt_array = []
-for yidx in range(selyear,selyear+1):
+for yidx in range(1979,2019): #range(selyear,selyear+1):
 	
 	# To get year (integer input) from the user
 	# year = int(input("Enter a year: "))
@@ -368,19 +369,27 @@ for yidx in range(selyear,selyear+1):
 #####################################################
 # Load Clustering stats
 #####################################################
-
-Results = np.load("/home/cwe022/Clusters_Sensitivity/Results_test1.0_tim_"+ tim_thresh + "_length_" + lng_thresh + ".npz", allow_pickle=True)
+Results = np.load("/home/WUR/weije043/scripts/python/CyClust/Clusters_output/Global_Results_1.0_tim_36.0_length_1.5.npz", allow_pickle=True)
+#Results = np.load("/home/cwe022/Clusters_Sensitivity/Results_test1.0_tim_"+ tim_thresh + "_length_" + lng_thresh + ".npz", allow_pickle=True)
 #Results_test1.0_tim_36.0_length_1.5
+
+# All clusters
 sorted_clusters = Results["sorted_clusters"]
-lengthclust = Results["lengthclust"]
-lengths = Results["lengths"]
+
+# Only Subclusters (lengtg or nolength)
+#sorted_subclusters = Results["sorted_subclusters_length"]
+#sorted_clusters = sorted(unnest(sorted_subclusters))
+
+
+#lengthclust = Results["lengthclust"]
+#lengths = Results["lengths"]
 str_connected = Results["str_connected"]
-str_connected = str_connected[1272894:][selidxs] #Filter storms from 2011
+#str_connected = str_connected[1272894:][selidxs] #Filter storms from 2011
 
 #Filter clusterd storms
 strmidxs = np.unique(str_id)
 clststroms = [strm for cluster in sorted_clusters for strm in cluster if len(cluster) > 1 and strm in strmidxs]
-
+strmidxs = sorted(clststroms)
 
 #####################################################
 # 1. Determine storm density
@@ -477,9 +486,9 @@ if(calcDensity):
 									if(tridx == mindpdtidx):
 										storms_mindpdt[tidx,latidx,lonidx] += 1 									
 									bool_tracks[latidx,lonidx] = True
-									if((temp_pres[tridx] <= pres_pctl[0,latidx,lonidx]/100.0) & (bool_tracks_strong[latidx,lonidx] == False)): 											
-										tracks_strong[tidx,latidx,lonidx] += 1
-										bool_tracks_strong[latidx,lonidx] = True
+									#if((temp_pres[tridx] <= pres_pctl[0,latidx,lonidx]/100.0) & (bool_tracks_strong[latidx,lonidx] == False)): 											
+									#	tracks_strong[tidx,latidx,lonidx] += 1
+									#	bool_tracks_strong[latidx,lonidx] = True
 									if(stridx in clststroms):
 										storms_clust[tidx,latidx,lonidx] += 1
 										if(bool_tracks_clust[latidx,lonidx] == False):
@@ -551,6 +560,44 @@ if(calcDensity):
 	mean_lysis = np.nanmean(lysis,axis=0)
 	mean_mindpdt = np.nanmean(storms_mindpdt,axis=0)
 	mean_minpres = np.nanmean(storms_minpres,axis=0)
+	
+	mean_storms_seas = np.zeros((4,121,240))
+	mean_tracks_seas = np.zeros((4,121,240))
+	mean_genesis_seas = np.zeros((4,121,240))
+	mean_lysis_seas = np.zeros((4,121,240))
+	mean_mindpdt_seas = np.zeros((4,121,240))
+	mean_minpres_seas = np.zeros((4,121,240))
+	
+	## seasonal differences ##
+	seasons = ["DJF","MAM","JJA","SON"]
+	i=0
+	for season in seasons:
+		months = np.array([x.month for x in dt_array])
+		if(season == "DJF"):
+			selidxs = (months < 3) | (months >= 12)
+		elif(season == "MAM"):
+			selidxs = (months < 6) | (months >= 3)
+		elif(season == "JJA"):
+			selidxs = (months < 9) | (months >= 6)
+		elif(season == "SON"):
+			selidxs = (months < 12) | (months >= 8)
+
+		mean_storms_seas[i,::] = np.nanmean(storms[selidxs,::],axis=0)
+		mean_tracks_seas[i,::] = np.nanmean(tracks[selidxs,::],axis=0)
+		if(calcDensity):
+			mean_genesis_seas[i,::] = np.nanmean(genesis[selidxs,::],axis=0)
+			mean_lysis_seas[i,::]   = np.nanmean(lysis[selidxs,::],axis=0)
+			mean_mindpdt_seas[i,::] = np.nanmean(storms_mindpdt,axis=0)
+			mean_minpres_seas[i,::] = np.nanmean(storms_minpres,axis=0)	
+		i+=1
+	
+	#outfile ="/Data/gfi/spengler/cwe022/Density_" + datachar + "_" + distchar + ".npz"
+	outfile="/home/WUR/weije043/scripts/python/CyClust/ResultsTracks/Density_Clusters_" + datachar + "_" + distchar + ".npz"
+	#np.savez(outfile, storms=storms, tracks=tracks,mean_storms=mean_storms, #genesis= genesis,lysis=lysis,
+	#mean_tracks=mean_tracks,mean_genesis=mean_genesis,mean_lysis=mean_lysis, mean_mindpdt= mean_mindpdt, mean_minpres=mean_minpres)
+	np.savez(outfile, mean_storms=mean_storms, mean_tracks=mean_tracks,mean_genesis=mean_genesis,mean_lysis=mean_lysis,
+	mean_storms_seas=mean_storms_seas,mean_tracks_seas=mean_tracks_seas,mean_genesis_seas=mean_genesis_seas,
+	mean_lysis_seas=mean_lysis_seas,mean_mindpdt_seas=mean_mindpdt_seas,mean_minpres_seas=mean_minpres_seas)
 else:
 	#outfile ="/Data/gfi/spengler/cwe022/Densisty.npz"
 	outfile ="/Data/gfi/spengler/cwe022/Density_" + datachar + "_" + distchar + ".npz"
@@ -618,6 +665,45 @@ if(plotDensities):
 	fig.map(mean_tracks*mul_fac,grid,m=worldShift,overlays=overlays,scale=scale_tracks,title="Track Density", cmap="PuBuGn",cb_label='% per 1000 km$^2$',extend="both") #np.arange(2,12.1,1)
 	plt.savefig("TracDensity_IMILAST_" + datachar + "_" + distchar + ".pdf")
 
+	for season in seasons:
+		months = np.array([x.month for x in dt_array])
+		if(season == "DJF"):
+			selidxs = (months < 3) | (months >= 12)
+		elif(season == "MAM"):
+			selidxs = (months < 6) | (months >= 3)
+		elif(season == "JJA"):
+			selidxs = (months < 9) | (months >= 6)
+		elif(season == "SON"):
+			selidxs = (months < 12) | (months >= 8)
+
+		mean_storms = np.nanmean(storms[selidxs,::],axis=0)
+		mean_tracks = np.nanmean(tracks[selidxs,::],axis=0)
+		if(calcDensity):
+			mean_genesis = np.nanmean(genesis[selidxs,::],axis=0)
+			mean_lysis = np.nanmean(lysis[selidxs,::],axis=0)
+			mean_mindpdt = np.nanmean(storms_mindpdt,axis=0)
+			mean_minpres = np.nanmean(storms_minpres,axis=0)
+
+		plt.figure()
+		overlays = [fig.map_overlay_contour(mean_tracks*mul_fac,  grid,title=None,cb_label='The nr. of storms per month', scale=[10], linewidths=0.75)]
+		fig.map(mean_tracks*mul_fac,grid,overlays=overlays,scale=scale_tracks,cmap="PuBuGn",extend="both") #np.arange(2,12.1,1)
+		plt.savefig("Mean_monthlystorms_" + datachar + "_" + season + "_" + distchar +".pdf")
+
+		plt.figure()
+		overlays = [fig.map_overlay_contour(mean_storms*mul_fac,  grid,title=None,cb_label='% per 1000 km$^2$', scale=[10], linewidths=0.75)]
+		fig.map(mean_storms*mul_fac,grid,m=worldShift,overlays=overlays,scale=scale_density,title="Storm Density",cmap="PuBuGn",cb_label='% per 1000 km$^2$',extend="both") #np.arange(2,12.1,1)
+		plt.savefig("StormDensity_IMILAST_" + datachar + "_" + season + "_" + distchar +".pdf")
+
+		plt.figure()
+		overlays = [fig.map_overlay_contour(mean_storms*mul_fac,  grid,title=None,cb_label='% per 1000 km$^2$', scale=[10], linewidths=0.75)]
+		fig.map(mean_storms*mul_fac,grid,overlays=overlays,scale=[2,5,10,15,20,25,35,50,70,100],cb_tickspacing="uniform",title="Storm Density",cmap="terrain",cb_label='% per 1000 km$^2$',extend="max", m=n_extratropics) #np.arange(2,12.1,1)
+		plt.savefig("StormDensity_IMILAST_" + datachar + "_" + season + "_" + distchar +"_NH.pdf")
+
+		plt.figure()
+		overlays = [fig.map_overlay_contour(mean_storms*mul_fac,  grid,title=None,cb_label='% per 1000 km$^2$', scale=[10], linewidths=0.75)]
+		fig.map(mean_storms*mul_fac,grid,overlays=overlays,scale=[2,5,10,15,20,25,35,50,70,100],cb_tickspacing="uniform",title="Storm Density",cmap="terrain",cb_label='% per 1000 km$^2$',extend="max", m=s_extratropics) #np.arange(2,12.1,1)
+		plt.savefig("StormDensity_IMILAST_" + datachar + "_" + season + "_" + distchar +"_SH.pdf")
+		
 
 ########################################################
 # 2. Determine clustering storm density
@@ -670,7 +756,7 @@ plt.bar(dt_array, storms_clust[:,23,117], color = 'b', width = 0.25)
 plt.savefig("Runstats_wint201314.png")
 
 # plot it
-
+'''
 fig = plt.figure(figsize=(8, 4))
 ax0 = plt.subplot2grid((6, 1), (0, 0), rowspan =5)
 ax0.plot(dt_array, rnmean_45N,color='r')
@@ -776,4 +862,4 @@ fig.map(runstats_7days_DJF[4,::]*100.0,grid,cmap="PuBuGn",title="Fraction of 7 d
 plt.savefig("7dayrunmean_" + datachar + "_" + distchar + "_DJF.pdf")
 """
 
-
+'''
