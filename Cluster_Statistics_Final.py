@@ -186,12 +186,12 @@ if(Options["checkBasin"]):
         dt_temp = str_dt[ids_storms[strm]] 
         wint_temp = ext_winter[ids_storms[strm]]
         swint_temp = ext_swinter[ids_storms[strm]]
-        conn_temp = str_connected[ids_storms[strm]]
+        #conn_temp = str_connected[ids_storms[strm]]
         
         
         
-        if(np.any(conn_temp !=0)):
-            str_first[strm -1] = np.nanmin(dt_temp[conn_temp >0])
+        #if(np.any(conn_temp !=0)):
+        #    str_first[strm -1] = np.nanmin(dt_temp[conn_temp >0])
          
         nr_EuroAsia = np.nansum((lon_temp >= 10) & (lon_temp <= 120) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
         nr_America = np.nansum((lon_temp >= 240) & (lon_temp <= 280) & (lat_temp >= 20) & (lat_temp <= 75) & (wint_temp == True) )
@@ -410,7 +410,7 @@ fig = plt.figure(figsize=(12,2.67))
 ax = plt.subplot(1, 1, 1)
 data = np.log10(arrayLengths)
 data[np.isinf(data)] = np.nan
-plt.rcParams['font.sans-serif'] = ['Arial'] #,'Arial','Verdana','Helvetica']
+plt.rcParams['font.sans-serif'] = ['Verdana'] #,'Arial','Verdana','Helvetica']
 #["black",'xkcd:baby puke green','firebrick','darkblue','xkcd:rich purple','xkcd:pumpkin']
 ax.set_prop_cycle(color=["black",'xkcd:deep red','darkblue','xkcd:pumpkin','xkcd:sky blue','xkcd:grass green'],
 linewidth=[1.6,0.9,0.9,0.9,0.9,0.9],linestyle=['-','--','--','-','-','-'])
@@ -423,7 +423,7 @@ ax.set_yticklabels(yvals) #10.0**np.arange(0, 5)
 ax.set_xlabel("Length of cluster")
 ax.set_xlim(2,21)
 ax.set_ylim(-.2,np.log10(5000))
-ax.grid(linestyle = '--')
+ax.grid(linewidth = 0.5)
 
 # Hide the right and top spines
 ax.spines[['right', 'top']].set_visible(False)
@@ -431,6 +431,584 @@ ax.spines[['right', 'top']].set_visible(False)
 plt.legend(labels=["All","North Atlantic","North Pacific","South Atlantic","South Pacific","South Indian"])
 plt.tight_layout()
 plt.savefig("ClustersLength_Areas_lines_"+ Options["whichClusters"] + ".pdf")
+############################################################################
+
+############################################################################
+# Determine Histogram of intensity/radius measures of clusters for each basin
+############################################################################
+#Subselect cyclone families and non-cyclone families
+storms_Atlantic_solo = [item for sublist in sorted_clusters_Atlantic for item in sublist if (len(sublist) <= 3)]
+storms_Pacific_solo = [item for sublist in sorted_clusters_Pacific for item in sublist if (len(sublist) <= 3)]
+storms_sAtlantic_solo = [item for sublist in sorted_clusters_sAtlantic for item in sublist if (len(sublist) <= 3)]
+storms_sPacific_solo = [item for sublist in sorted_clusters_sPacific for item in sublist if (len(sublist) <= 3)]
+storms_sIndian_solo = [item for sublist in sorted_clusters_sIndian for item in sublist if (len(sublist) <= 3)]
+
+storms_Atlantic_clust = [item for sublist in sorted_clusters_Atlantic for item in sublist if (len(sublist) > 3)]
+storms_Pacific_clust = [item for sublist in sorted_clusters_Pacific for item in sublist if (len(sublist) > 3)]
+storms_sAtlantic_clust = [item for sublist in sorted_clusters_sAtlantic for item in sublist if (len(sublist) > 3)]
+storms_sPacific_clust = [item for sublist in sorted_clusters_sPacific for item in sublist if (len(sublist) > 3)]
+storms_sIndian_clust = [item for sublist in sorted_clusters_sIndian for item in sublist if (len(sublist) > 3)]
+
+storms_Atlantic = [item for sublist in sorted_clusters_Atlantic for item in sublist]
+length_Atlantic = [len(sublist) for sublist in sorted_clusters_Atlantic for item in sublist]
+storms_Pacific = [item for sublist in sorted_clusters_Pacific for item in sublist]
+length_Pacific = [len(sublist) for sublist in sorted_clusters_Pacific for item in sublist]
+storms_sAtlantic = [item for sublist in sorted_clusters_sAtlantic for item in sublist]
+length_sAtlantic = [len(sublist) for sublist in sorted_clusters_sAtlantic for item in sublist]
+storms_sPacific = [item for sublist in sorted_clusters_sPacific for item in sublist]
+length_sPacific = [len(sublist) for sublist in sorted_clusters_sPacific for item in sublist]
+storms_sIndian = [item for sublist in sorted_clusters_sIndian for item in sublist]
+length_sIndian = [len(sublist) for sublist in sorted_clusters_sIndian for item in sublist]
+
+#Define results arrays
+pres_Atlantic = np.zeros(len(storms_Atlantic))
+lapl_Atlantic = np.zeros(len(storms_Atlantic))
+pres_Pacific = np.zeros(len(storms_Pacific))
+lapl_Pacific = np.zeros(len(storms_Pacific))
+pres_sAtlantic = np.zeros(len(storms_sAtlantic))
+lapl_sAtlantic = np.zeros(len(storms_sAtlantic))
+pres_sPacific = np.zeros(len(storms_sPacific))
+lapl_sPacific = np.zeros(len(storms_sPacific))
+pres_sIndian = np.zeros(len(storms_sIndian))
+lapl_sIndian = np.zeros(len(storms_sIndian))
+month_Atlantic = np.zeros(len(storms_Atlantic))
+month_Pacific = np.zeros(len(storms_Pacific))
+month_sAtlantic = np.zeros(len(storms_sAtlantic))
+month_sPacific = np.zeros(len(storms_sPacific))
+month_sIndian = np.zeros(len(storms_sIndian))
+year_Atlantic = np.zeros(len(storms_Atlantic))
+year_Pacific = np.zeros(len(storms_Pacific))
+year_sAtlantic = np.zeros(len(storms_sAtlantic))
+year_sPacific = np.zeros(len(storms_sPacific))
+year_sIndian = np.zeros(len(storms_sIndian))
+radi_Atlantic = np.zeros(len(storms_Atlantic))
+radi_Pacific = np.zeros(len(storms_Pacific))
+radi_sAtlantic = np.zeros(len(storms_sAtlantic))
+radi_sPacific = np.zeros(len(storms_sPacific))
+radi_sIndian = np.zeros(len(storms_sIndian))
+
+
+pres_Atlantic_clust = np.zeros(len(storms_Atlantic_clust))
+lapl_Atlantic_clust = np.zeros(len(storms_Atlantic_clust))
+pres_Pacific_clust = np.zeros(len(storms_Pacific_clust))
+lapl_Pacific_clust = np.zeros(len(storms_Pacific_clust))
+pres_sAtlantic_clust = np.zeros(len(storms_sAtlantic_clust))
+lapl_sAtlantic_clust = np.zeros(len(storms_sAtlantic_clust))
+pres_sPacific_clust = np.zeros(len(storms_sPacific_clust))
+lapl_sPacific_clust = np.zeros(len(storms_sPacific_clust))
+pres_sIndian_clust = np.zeros(len(storms_sIndian_clust))
+lapl_sIndian_clust = np.zeros(len(storms_sIndian_clust))
+
+pres_Atlantic_solo = np.zeros(len(storms_Atlantic_solo))
+lapl_Atlantic_solo = np.zeros(len(storms_Atlantic_solo))
+pres_Pacific_solo = np.zeros(len(storms_Pacific_solo))
+lapl_Pacific_solo = np.zeros(len(storms_Pacific_solo))
+pres_sAtlantic_solo = np.zeros(len(storms_sAtlantic_solo))
+lapl_sAtlantic_solo = np.zeros(len(storms_sAtlantic_solo))
+pres_sPacific_solo = np.zeros(len(storms_sPacific_solo))
+lapl_sPacific_solo = np.zeros(len(storms_sPacific_solo))
+pres_sIndian_solo = np.zeros(len(storms_sIndian_solo))
+lapl_sIndian_solo = np.zeros(len(storms_sIndian_solo))
+
+radi_Atlantic_clust = np.zeros(len(storms_Atlantic_clust))
+radi_Pacific_clust = np.zeros(len(storms_Pacific_clust))
+radi_sAtlantic_clust = np.zeros(len(storms_sAtlantic_clust))
+radi_sPacific_clust = np.zeros(len(storms_sPacific_clust))
+radi_sIndian_clust = np.zeros(len(storms_sIndian_clust))
+
+radi_Atlantic_solo = np.zeros(len(storms_Atlantic_solo))
+radi_Pacific_solo = np.zeros(len(storms_Pacific_solo))
+radi_sAtlantic_solo = np.zeros(len(storms_sAtlantic_solo))
+radi_sPacific_solo = np.zeros(len(storms_sPacific_solo))
+radi_sIndian_solo = np.zeros(len(storms_sIndian_solo))
+
+month_Atlantic_clust = np.zeros(len(storms_Atlantic_clust))
+month_Pacific_clust = np.zeros(len(storms_Pacific_clust))
+month_sAtlantic_clust = np.zeros(len(storms_sAtlantic_clust))
+month_sPacific_clust = np.zeros(len(storms_sPacific_clust))
+month_sIndian_clust = np.zeros(len(storms_sIndian_clust))
+
+month_Atlantic_solo = np.zeros(len(storms_Atlantic_solo))
+month_Pacific_solo = np.zeros(len(storms_Pacific_solo))
+month_sAtlantic_solo = np.zeros(len(storms_sAtlantic_solo))
+month_sPacific_solo = np.zeros(len(storms_sPacific_solo))
+month_sIndian_solo = np.zeros(len(storms_sIndian_solo))
+
+year_Atlantic_clust = np.zeros(len(storms_Atlantic_clust))
+year_Pacific_clust = np.zeros(len(storms_Pacific_clust))
+year_sAtlantic_clust = np.zeros(len(storms_sAtlantic_clust))
+year_sPacific_clust = np.zeros(len(storms_sPacific_clust))
+year_sIndian_clust = np.zeros(len(storms_sIndian_clust))
+
+year_Atlantic_solo = np.zeros(len(storms_Atlantic_solo))
+year_Pacific_solo = np.zeros(len(storms_Pacific_solo))
+year_sAtlantic_solo = np.zeros(len(storms_sAtlantic_solo))
+year_sPacific_solo = np.zeros(len(storms_sPacific_solo))
+year_sIndian_solo = np.zeros(len(storms_sIndian_solo))
+
+#Intensification
+int_Atlantic_clust = []
+int_Pacific_clust = []
+int_sAtlantic_clust = []
+int_sPacific_clust = []
+int_sIndian_clust = []
+
+int_Atlantic_solo = []
+int_Pacific_solo = []
+int_sAtlantic_solo = []
+int_sPacific_solo = []
+int_sIndian_solo = []
+
+for strm in range(len(storms_Atlantic)):
+	pres_Atlantic[strm] = np.nanmin(str_pres[ids_storms[storms_Atlantic[strm]]])
+	lapl_Atlantic[strm] = np.nanmax(str_lapl[ids_storms[storms_Atlantic[strm]]])
+	radi_Atlantic[strm] = np.nanmean(str_radi[ids_storms[storms_Atlantic[strm]]])
+	month_Atlantic[strm] = stats.mode(str_month[ids_storms[storms_Atlantic[strm]]])[0]
+	year_Atlantic[strm] = stats.mode(str_year[ids_storms[storms_Atlantic[strm]]])[0]
+	
+	pres_temp = str_pres[ids_storms[storms_Atlantic[strm]]][1:] - str_pres[ids_storms[storms_Atlantic[strm]]][:-1]
+	
+	int_Atlantic_clust.append(pres_temp)
+
+for strm in range(len(storms_Atlantic_clust)):
+	pres_Atlantic_clust[strm] = np.nanmin(str_pres[ids_storms[storms_Atlantic_clust[strm]]])
+	lapl_Atlantic_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_Atlantic_clust[strm]]])
+	radi_Atlantic_clust[strm] = np.nanmean(str_radi[ids_storms[storms_Atlantic_clust[strm]]])
+	month_Atlantic_clust[strm] = stats.mode(str_month[ids_storms[storms_Atlantic_clust[strm]]])[0]
+	year_Atlantic_clust[strm] = stats.mode(str_year[ids_storms[storms_Atlantic_clust[strm]]])[0]
+
+for strm in range(len(storms_Atlantic_solo)):
+	pres_Atlantic_solo[strm] = np.nanmin(str_pres[ids_storms[storms_Atlantic_solo[strm]]])
+	lapl_Atlantic_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_Atlantic_solo[strm]]])
+	radi_Atlantic_solo[strm] = np.nanmean(str_radi[ids_storms[storms_Atlantic_solo[strm]]])
+	month_Atlantic_solo[strm] = stats.mode(str_month[ids_storms[storms_Atlantic_solo[strm]]])[0]
+	year_Atlantic_solo[strm] = stats.mode(str_year[ids_storms[storms_Atlantic_solo[strm]]])[0]
+
+for strm in range(len(storms_Pacific)):
+	pres_Pacific[strm] = np.nanmin(str_pres[ids_storms[storms_Pacific[strm]]])
+	lapl_Pacific[strm] = np.nanmax(str_lapl[ids_storms[storms_Pacific[strm]]])
+	radi_Pacific[strm] = np.nanmean(str_radi[ids_storms[storms_Pacific[strm]]])
+	month_Pacific[strm] = stats.mode(str_month[ids_storms[storms_Pacific[strm]]])[0]
+	year_Pacific[strm] = stats.mode(str_year[ids_storms[storms_Pacific[strm]]])[0]
+
+for strm in range(len(storms_Pacific_clust)):
+	pres_Pacific_clust[strm] = np.nanmin(str_pres[ids_storms[storms_Pacific_clust[strm]]])
+	lapl_Pacific_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_Pacific_clust[strm]]])
+	radi_Pacific_clust[strm] = np.nanmean(str_radi[ids_storms[storms_Pacific_clust[strm]]])
+	month_Pacific_clust[strm] = stats.mode(str_month[ids_storms[storms_Pacific_clust[strm]]])[0]
+	year_Pacific_clust[strm] = stats.mode(str_year[ids_storms[storms_Pacific_clust[strm]]])[0]
+
+for strm in range(len(storms_Pacific_solo)):
+	pres_Pacific_solo[strm] = np.nanmin(str_pres[ids_storms[storms_Pacific_solo[strm]]])
+	lapl_Pacific_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_Pacific_solo[strm]]])
+	radi_Pacific_solo[strm] = np.nanmean(str_radi[ids_storms[storms_Pacific_solo[strm]]])
+	month_Pacific_solo[strm] = stats.mode(str_month[ids_storms[storms_Pacific_solo[strm]]])[0]
+	year_Pacific_solo[strm] = stats.mode(str_year[ids_storms[storms_Pacific_solo[strm]]])[0]
+
+for strm in range(len(storms_sAtlantic)):
+	pres_sAtlantic[strm] = np.nanmin(str_pres[ids_storms[storms_sAtlantic[strm]]])
+	lapl_sAtlantic[strm] = np.nanmax(str_lapl[ids_storms[storms_sAtlantic[strm]]])
+	radi_sAtlantic[strm] = np.nanmean(str_radi[ids_storms[storms_sAtlantic[strm]]])
+	month_sAtlantic[strm] = stats.mode(str_month[ids_storms[storms_sAtlantic[strm]]])[0]
+	year_sAtlantic[strm] = stats.mode(str_year[ids_storms[storms_sAtlantic[strm]]])[0]
+
+for strm in range(len(storms_sAtlantic_clust)):
+	pres_sAtlantic_clust[strm] = np.nanmin(str_pres[ids_storms[storms_sAtlantic_clust[strm]]])
+	lapl_sAtlantic_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_sAtlantic_clust[strm]]])
+	radi_sAtlantic_clust[strm] = np.nanmean(str_radi[ids_storms[storms_sAtlantic_clust[strm]]])
+	month_sAtlantic_clust[strm] = stats.mode(str_month[ids_storms[storms_sAtlantic_clust[strm]]])[0]
+	year_sAtlantic_clust[strm] = stats.mode(str_year[ids_storms[storms_sAtlantic_clust[strm]]])[0]
+
+for strm in range(len(storms_sAtlantic_solo)):
+	pres_sAtlantic_solo[strm] = np.nanmin(str_pres[ids_storms[storms_sAtlantic_solo[strm]]])
+	lapl_sAtlantic_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_sAtlantic_solo[strm]]])
+	radi_sAtlantic_solo[strm] = np.nanmean(str_radi[ids_storms[storms_sAtlantic_solo[strm]]])
+	month_sAtlantic_solo[strm] = stats.mode(str_month[ids_storms[storms_sAtlantic_solo[strm]]])[0]
+	year_sAtlantic_solo[strm] = stats.mode(str_year[ids_storms[storms_sAtlantic_solo[strm]]])[0]
+
+for strm in range(len(storms_sPacific)):
+	pres_sPacific[strm] = np.nanmin(str_pres[ids_storms[storms_sPacific[strm]]])
+	lapl_sPacific[strm] = np.nanmax(str_lapl[ids_storms[storms_sPacific[strm]]])
+	radi_sPacific[strm] = np.nanmean(str_radi[ids_storms[storms_sPacific[strm]]])
+	month_sPacific[strm] = stats.mode(str_month[ids_storms[storms_sPacific[strm]]])[0]
+	year_sPacific[strm] = stats.mode(str_year[ids_storms[storms_sPacific[strm]]])[0]
+
+for strm in range(len(storms_sPacific_clust)):
+	pres_sPacific_clust[strm] = np.nanmin(str_pres[ids_storms[storms_sPacific_clust[strm]]])
+	lapl_sPacific_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_sPacific_clust[strm]]])
+	radi_sPacific_clust[strm] = np.nanmean(str_radi[ids_storms[storms_sPacific_clust[strm]]])
+	month_sPacific_clust[strm] = stats.mode(str_month[ids_storms[storms_sPacific_clust[strm]]])[0]
+	year_sPacific_clust[strm] = stats.mode(str_year[ids_storms[storms_sPacific_clust[strm]]])[0]
+
+for strm in range(len(storms_sPacific_solo)):
+	pres_sPacific_solo[strm] = np.nanmin(str_pres[ids_storms[storms_sPacific_solo[strm]]])
+	lapl_sPacific_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_sPacific_solo[strm]]])
+	radi_sPacific_solo[strm] = np.nanmean(str_radi[ids_storms[storms_sPacific_solo[strm]]])
+	month_sPacific_solo[strm] = stats.mode(str_month[ids_storms[storms_sPacific_solo[strm]]])[0]
+	year_sPacific_solo[strm] = stats.mode(str_year[ids_storms[storms_sPacific_solo[strm]]])[0]
+
+for strm in range(len(storms_sIndian)):
+	pres_sIndian[strm] = np.nanmin(str_pres[ids_storms[storms_sIndian[strm]]])
+	lapl_sIndian[strm] = np.nanmax(str_lapl[ids_storms[storms_sIndian[strm]]])
+	radi_sIndian[strm] = np.nanmean(str_radi[ids_storms[storms_sIndian[strm]]])
+	month_sIndian[strm] = stats.mode(str_month[ids_storms[storms_sIndian[strm]]])[0]
+	year_sIndian[strm] = stats.mode(str_year[ids_storms[storms_sIndian[strm]]])[0]
+
+for strm in range(len(storms_sIndian_clust)):
+	pres_sIndian_clust[strm] = np.nanmin(str_pres[ids_storms[storms_sIndian_clust[strm]]])
+	lapl_sIndian_clust[strm] = np.nanmax(str_lapl[ids_storms[storms_sIndian_clust[strm]]])
+	radi_sIndian_clust[strm] = np.nanmean(str_radi[ids_storms[storms_sIndian_clust[strm]]])
+	month_sIndian_clust[strm] = stats.mode(str_month[ids_storms[storms_sIndian_clust[strm]]])[0]
+	year_sIndian_clust[strm] = stats.mode(str_year[ids_storms[storms_sIndian_clust[strm]]])[0]
+
+for strm in range(len(storms_sIndian_solo)):
+	pres_sIndian_solo[strm] = np.nanmin(str_pres[ids_storms[storms_sIndian_solo[strm]]])
+	lapl_sIndian_solo[strm] = np.nanmax(str_lapl[ids_storms[storms_sIndian_solo[strm]]])
+	radi_sIndian_solo[strm] = np.nanmean(str_radi[ids_storms[storms_sIndian_solo[strm]]])
+	month_sIndian_solo[strm] = stats.mode(str_month[ids_storms[storms_sIndian_solo[strm]]])[0]
+	year_sIndian_solo[strm] = stats.mode(str_year[ids_storms[storms_sIndian_solo[strm]]])[0]
+
+pres_All = np.hstack((pres_Atlantic,pres_Pacific,pres_sAtlantic,pres_sPacific,pres_sIndian))
+length_All = np.hstack((length_Atlantic,length_Pacific,length_sAtlantic,length_sPacific,length_sIndian))
+pres_All_clust = np.hstack((pres_Atlantic_clust,pres_Pacific_clust,pres_sAtlantic_clust,pres_sPacific_clust,pres_sIndian_clust))
+pres_All_solo = np.hstack((pres_Atlantic_solo,pres_Pacific_solo,pres_sAtlantic_solo,pres_sPacific_solo,pres_sIndian_solo))
+
+lapl_All = np.hstack((lapl_Atlantic,lapl_Pacific,lapl_sAtlantic,lapl_sPacific,lapl_sIndian))
+lapl_All_clust = np.hstack((lapl_Atlantic_clust,lapl_Pacific_clust,lapl_sAtlantic_clust,lapl_sPacific_clust,lapl_sIndian_clust))
+lapl_All_solo = np.hstack((lapl_Atlantic_solo,lapl_Pacific_solo,lapl_sAtlantic_solo,lapl_sPacific_solo,lapl_sIndian_solo))
+
+radi_All_clust = np.hstack((radi_Atlantic_clust,radi_Pacific_clust,radi_sAtlantic_clust,radi_sPacific_clust,radi_sIndian_clust))
+radi_All_solo = np.hstack((radi_Atlantic_solo,radi_Pacific_solo,radi_sAtlantic_solo,radi_sPacific_solo,radi_sIndian_solo))
+
+month_All = np.hstack(((month_Atlantic+6)%12,(month_Pacific+6)%12,month_sAtlantic,month_sPacific,month_sIndian))
+month_All_clust = np.hstack((month_Atlantic_clust,month_Pacific_clust,month_sAtlantic_clust,month_sPacific_clust,month_sIndian_clust))
+month_All_solo = np.hstack((month_Atlantic_solo,month_Pacific_solo,month_sAtlantic_solo,month_sPacific_solo,month_sIndian_solo))
+
+year_All_clust = np.hstack((year_Atlantic_clust,year_Pacific_clust,year_sAtlantic_clust,year_sPacific_clust,year_sIndian_clust))
+year_All_solo = np.hstack((year_Atlantic_solo,year_Pacific_solo,year_sAtlantic_solo,year_sPacific_solo,year_sIndian_solo))
+
+
+#################
+# PDF with min. pressure, only strongest cyclone per family
+#################
+laplstep = .5
+laplBins_mid = np.arange(2.0,9.1,laplstep)
+laplBins = np.arange(1.75,9.26,laplstep)
+
+pdfAll = np.zeros((10,len(laplBins_mid)))
+pdfAtlantic = np.zeros((10,len(laplBins_mid)))
+pdfPacific = np.zeros((10,len(laplBins_mid)))
+pdfsAtlantic = np.zeros((10,len(laplBins_mid)))
+pdfsPacific = np.zeros((10,len(laplBins_mid)))
+pdfsIndian = np.zeros((10,len(laplBins_mid)))
+
+quantsAll = np.zeros((10,3))
+quantsAtlantic = np.zeros((10,3))
+quantsPacific = np.zeros((10,3))
+quantsSAtlantic = np.zeros((10,3))
+quantsSPacific = np.zeros((10,3))
+quantsSIndian = np.zeros((10,3))
+
+quantsAll_Expect = np.zeros((10,3))
+quantsAtlantic_Expect = np.zeros((10,3))
+quantsPacific_Expect = np.zeros((10,3))
+quantsSAtlantic_Expect = np.zeros((10,3))
+quantsSPacific_Expect = np.zeros((10,3))
+quantsSIndian_Expect = np.zeros((10,3))
+
+'''
+for l in range(10):
+	if(l < 9):
+		laplTempAtlantic = [np.nanmax(lapl_Atlantic[np.array([np.where(np.array(storms_Atlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Atlantic if len(sublist) == l + 1]
+		laplTempPacific = [np.nanmax(lapl_Pacific[np.array([np.where(np.array(storms_Pacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Pacific if len(sublist) == l + 1]
+		laplTempsAtlantic = [np.nanmax(lapl_sAtlantic[np.array([np.where(np.array(storms_sAtlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sAtlantic if len(sublist) == l + 1]
+		laplTempsPacific = [np.nanmax(lapl_sPacific[np.array([np.where(np.array(storms_sPacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sPacific if len(sublist) == l + 1]
+		laplTempsIndian = [np.nanmax(lapl_sIndian[np.array([np.where(np.array(storms_sIndian) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sIndian if len(sublist) == l + 1]
+
+	else:
+		laplTempAtlantic = [np.nanmax(lapl_Atlantic[np.array([np.where(np.array(storms_Atlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Atlantic if len(sublist) >= l + 1]
+		laplTempPacific = [np.nanmax(lapl_Pacific[np.array([np.where(np.array(storms_Pacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Pacific if len(sublist) >= l + 1]
+		laplTempsAtlantic = [np.nanmax(lapl_sAtlantic[np.array([np.where(np.array(storms_sAtlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sAtlantic if len(sublist) >= l + 1]
+		laplTempsPacific = [np.nanmax(lapl_sPacific[np.array([np.where(np.array(storms_sPacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sPacific if len(sublist) >= l + 1]
+		laplTempsIndian = [np.nanmax(lapl_sIndian[np.array([np.where(np.array(storms_sIndian) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sIndian if len(sublist) >= l + 1]
+	laplTempAll = np.hstack((laplTempAtlantic,laplTempPacific,laplTempsAtlantic,laplTempsPacific,laplTempsIndian))
+	pdfAll[l,::] = np.histogram(laplTempAll,bins=laplBins,normed=True)[0]*laplstep
+	pdfAtlantic[l,::] = np.histogram(laplTempAtlantic,bins=laplBins,normed=True)[0]*laplstep
+	pdfPacific[l,::] = np.histogram(laplTempPacific,bins=laplBins,normed=True)[0]*laplstep
+	pdfsAtlantic[l,::] = np.histogram(laplTempsAtlantic,bins=laplBins,normed=True)[0]*laplstep
+	pdfsPacific[l,::] = np.histogram(laplTempsPacific,bins=laplBins,normed=True)[0]*laplstep
+	pdfsIndian[l,::] = np.histogram(laplTempsIndian,bins=laplBins,normed=True)[0]*laplstep
+	quantsAll[l,::] = np.quantile(laplTempAll,[0.1,0.5,0.9])	
+	quantsAtlantic[l,::] =  np.quantile(laplTempAtlantic,[0.1,0.5,0.9])
+	quantsPacific[l,::] = np.quantile(laplTempPacific,[0.1,0.5,0.9])
+	quantsSAtlantic[l,::] = np.quantile(laplTempsAtlantic,[0.1,0.5,0.9])
+	quantsSPacific[l,::] = np.quantile(laplTempsPacific,[0.1,0.5,0.9])
+	quantsSIndian[l,::] = np.quantile(laplTempsIndian,[0.1,0.5,0.9])
+
+
+	TempAll = np.zeros(10000)
+	TempAtlantic = np.zeros(10000)
+	TempPacific = np.zeros(10000)
+	TempsAtlantic = np.zeros(10000)
+	TempsPacific = np.zeros(10000)
+	TempsIndian = np.zeros(10000)
+
+	for i in range(10000):
+		TempAll[i] =np.nanmax(random.sample(list(lapl_All),l+1))
+		TempAtlantic[i] =np.nanmax(random.sample(list(lapl_Atlantic),l+1))
+		TempPacific[i] =np.nanmax(random.sample(list(lapl_Pacific),l+1))
+		TempsAtlantic[i] =np.nanmax(random.sample(list(lapl_sAtlantic),l+1))
+		TempsPacific[i] =np.nanmax(random.sample(list(lapl_sPacific),l+1))
+		TempsIndian[i] =np.nanmax(random.sample(list(lapl_sIndian),l+1))
+
+	quantsAll_Expect[l,::] = np.quantile(TempAll,[0.1,0.5,0.9])	
+	quantsAtlantic_Expect[l,::] =  np.quantile(TempAtlantic,[0.1,0.5,0.9])
+	quantsPacific_Expect[l,::] = np.quantile(TempPacific,[0.1,0.5,0.9])
+	quantsSAtlantic_Expect[l,::] = np.quantile(TempsAtlantic,[0.1,0.5,0.9])
+	quantsSPacific_Expect[l,::] = np.quantile(TempsPacific,[0.1,0.5,0.9])
+	quantsSIndian_Expect[l,::] = np.quantile(TempsIndian,[0.1,0.5,0.9])
+
+
+
+
+
+#laplBins = np.arange(920,1025.1,2.5)
+plt.figure()
+f, axs = plt.subplots(2, 3, sharey=False)
+f.set_figheight(4.0)
+f.set_figwidth(10.0)
+plt.subplots_adjust(hspace=0.4,wspace=.25)
+im = axs[0,0].contourf(laplBins_mid,range(1,11),pdfAll,cmap="RdBu_r")
+axs[0,0].plot(quantsAll[:,1],range(1,11),color="k",linewidth=1.5)
+axs[0,0].plot(quantsAll_Expect[:,1],range(1,11),color="blue",linewidth=1.5)
+axs[0,0].plot(quantsAll[:,0],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[0,0].plot(quantsAll[:,2],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[0,0].set_title("All")
+
+axs[0,1].contourf(laplBins_mid,range(1,11),pdfAtlantic,cmap="RdBu_r")
+axs[0,1].set_title("Atlantic")
+axs[0,1].plot(quantsAtlantic[:,1],range(1,11),color="k",linewidth=1.5)
+axs[0,1].plot(quantsAtlantic_Expect[:,1],range(1,11),color="blue",linewidth=1.5)
+axs[0,1].plot(quantsAtlantic[:,0],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[0,1].plot(quantsAtlantic[:,2],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+strAtl = "{:2.2f}".format(np.nanmean(lapl_Atlantic_solo))
+strAtlclust = "{:2.2f}".format(np.nanmean(lapl_Atlantic_clust))
+
+axs[0,2].contourf(laplBins_mid,range(1,11),pdfPacific,cmap="RdBu_r")
+axs[0,2].set_title("Pacific")
+axs[0,2].plot(quantsPacific[:,1],range(1,11),color="k",linewidth=1.5)
+axs[0,2].plot(quantsPacific_Expect[:,1],range(1,11),color="blue",linewidth=1.5)
+axs[0,2].plot(quantsPacific[:,0],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[0,2].plot(quantsPacific[:,2],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+strPac = "{:2.2f}".format(np.nanmean(lapl_Pacific_solo))
+strPacclust = "{:2.2f}".format(np.nanmean(lapl_Pacific_clust))
+
+axs[1,0].contourf(laplBins_mid,range(1,11),pdfsAtlantic,cmap="RdBu_r")
+axs[1,0].set_title("South Atlantic")
+axs[1,0].plot(quantsSAtlantic[:,1],range(1,11),color="k",linewidth=1.5)
+axs[1,0].plot(quantsSAtlantic_Expect[:,1],range(1,11),color="blue",linewidth=1.5)
+axs[1,0].plot(quantsSAtlantic[:,0],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[1,0].plot(quantsSAtlantic[:,2],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+strSAtl = "{:2.2f}".format(np.nanmean(lapl_sAtlantic_solo))
+strSAtlclust = "{:2.2f}".format(np.nanmean(lapl_sAtlantic_clust))
+
+axs[1,1].contourf(laplBins_mid,range(1,11),pdfsPacific,cmap="RdBu_r")
+axs[1,1].set_title("South Pacific")
+axs[1,1].plot(quantsSPacific[:,1],range(1,11),color="k",linewidth=1.5)
+axs[1,1].plot(quantsSPacific_Expect[:,1],range(1,11),color="blue",linewidth=1.5)
+axs[1,1].plot(quantsSPacific[:,0],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[1,1].plot(quantsSPacific[:,2],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+strSPac = "{:2.2f}".format(np.nanmean(lapl_sPacific_solo))
+strSPacclust = "{:2.2f}".format(np.nanmean(lapl_sPacific_clust))
+
+axs[1,2].contourf(laplBins_mid,range(1,11),pdfsIndian,cmap="RdBu_r")
+axs[1,2].set_title("South Indian")
+axs[1,2].plot(quantsSIndian[:,1],range(1,11),color="k",linewidth=1.5)
+axs[1,2].plot(quantsSIndian_Expect[:,1],range(1,11),color="blue",linewidth=1.5)
+axs[1,2].plot(quantsSIndian[:,0],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+axs[1,2].plot(quantsSIndian[:,2],range(1,11),color="k",linewidth=1.5,linestyle="dashed")
+strSInd = "{:2.2f}".format(np.nanmean(lapl_sIndian_solo))
+strSIndclust = "{:2.2f}".format(np.nanmean(lapl_sIndian_clust))
+
+# Add color bar
+f.subplots_adjust(right=0.875)
+cbar_ax = f.add_axes([0.9, 0.15, 0.02, 0.7])
+f.colorbar(im, cax=cbar_ax)
+
+# Add xlabel and ylabel
+f.add_subplot(111, frameon=False)
+plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+plt.xlabel("Maximum Laplacian of storm")
+plt.ylabel("Count")
+
+plt.savefig("MaxLaplPdfAreas" + reschar + "_StrongestCyclones_"+ Options["whichClusters"] + ".pdf")
+
+'''
+### BOXPLOTS ####
+# each plot returns a dictionary, use plt.setp()
+# function to assign the color code
+# for all properties of the box plot of particular group
+# use the below function to set color for particular group,
+# by iterating over all properties of the box plot
+def define_box_properties(plot_name, color_code, label):
+    for k, v in plot_name.items():
+        plt.setp(plot_name.get(k), color=color_code)
+         
+    # use plot function to draw a small line to name the legend.
+    plt.plot([], c=color_code, label=label)
+    plt.legend(bbox_to_anchor=(1.1, 0.75))
+ 
+
+
+### BOXPLOTS ####
+boxplotsAll = []
+boxplotsAtlantic = []
+boxplotsPacific = []
+boxplotsSAtlantic = []
+boxplotsSPacific = []
+boxplotsSIndian = []
+
+quantsAll_Expect = np.zeros((10,3))
+quantsAtlantic_Expect = np.zeros((10,3))
+quantsPacific_Expect = np.zeros((10,3))
+quantsSAtlantic_Expect = np.zeros((10,3))
+quantsSPacific_Expect = np.zeros((10,3))
+quantsSIndian_Expect = np.zeros((10,3))
+
+maxstorms = 10
+# the list named ticks, summarizes or groups
+ticks = ['Solo', '2', '3','4','5','6','7','8','9','10+']
+
+if(Options["whichClusters"] == "nolength"):
+    maxstorms = 8
+    # the list named ticks, summarizes or groups
+    ticks = ['Solo', '2', '3','4','5','6','7','8+','','']
+
+
+for l in range(maxstorms):
+	if(l < maxstorms - 1):
+		laplTempAtlantic = [np.nanmax(lapl_Atlantic[np.array([np.where(np.array(storms_Atlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Atlantic if len(sublist) == l + 1]
+		laplTempPacific = [np.nanmax(lapl_Pacific[np.array([np.where(np.array(storms_Pacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Pacific if len(sublist) == l + 1]
+		laplTempsAtlantic = [np.nanmax(lapl_sAtlantic[np.array([np.where(np.array(storms_sAtlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sAtlantic if len(sublist) == l + 1]
+		laplTempsPacific = [np.nanmax(lapl_sPacific[np.array([np.where(np.array(storms_sPacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sPacific if len(sublist) == l + 1]
+		laplTempsIndian = [np.nanmax(lapl_sIndian[np.array([np.where(np.array(storms_sIndian) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sIndian if len(sublist) == l + 1]
+
+	else:
+		laplTempAtlantic = [np.nanmax(lapl_Atlantic[np.array([np.where(np.array(storms_Atlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Atlantic if len(sublist) >= l + 1]
+		laplTempPacific = [np.nanmax(lapl_Pacific[np.array([np.where(np.array(storms_Pacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_Pacific if len(sublist) >= l + 1]
+		laplTempsAtlantic = [np.nanmax(lapl_sAtlantic[np.array([np.where(np.array(storms_sAtlantic) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sAtlantic if len(sublist) >= l + 1]
+		laplTempsPacific = [np.nanmax(lapl_sPacific[np.array([np.where(np.array(storms_sPacific) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sPacific if len(sublist) >= l + 1]
+		laplTempsIndian = [np.nanmax(lapl_sIndian[np.array([np.where(np.array(storms_sIndian) == item)[0] for item in sublist])]) for sublist in sorted_clusters_sIndian if len(sublist) >= l + 1]
+	laplTempAll = np.hstack((laplTempAtlantic,laplTempPacific,laplTempsAtlantic,laplTempsPacific,laplTempsIndian))
+	boxplotsAll.append(laplTempAll)
+	boxplotsAtlantic.append(laplTempAtlantic)
+	boxplotsPacific.append(laplTempPacific)
+	boxplotsSAtlantic.append(laplTempsAtlantic)
+	boxplotsSPacific.append(laplTempsPacific)
+	boxplotsSIndian.append(laplTempsIndian)
+	
+	
+	TempAll = np.zeros(10000)
+	TempAtlantic = np.zeros(10000)
+	TempPacific = np.zeros(10000)
+	TempsAtlantic = np.zeros(10000)
+	TempsPacific = np.zeros(10000)
+	TempsIndian = np.zeros(10000)
+
+	for i in range(10000):
+		TempAll[i] =np.nanmax(random.sample(list(lapl_All),l+1))
+		TempAtlantic[i] =np.nanmax(random.sample(list(lapl_Atlantic),l+1))
+		TempPacific[i] =np.nanmax(random.sample(list(lapl_Pacific),l+1))
+		TempsAtlantic[i] =np.nanmax(random.sample(list(lapl_sAtlantic),l+1))
+		TempsPacific[i] =np.nanmax(random.sample(list(lapl_sPacific),l+1))
+		TempsIndian[i] =np.nanmax(random.sample(list(lapl_sIndian),l+1))
+
+	quantsAll_Expect[l,::] = np.quantile(TempAll,[0.1,0.5,0.9])	
+	quantsAtlantic_Expect[l,::] =  np.quantile(TempAtlantic,[0.1,0.5,0.9])
+	quantsPacific_Expect[l,::] = np.quantile(TempPacific,[0.1,0.5,0.9])
+	quantsSAtlantic_Expect[l,::] = np.quantile(TempsAtlantic,[0.1,0.5,0.9])
+	quantsSPacific_Expect[l,::] = np.quantile(TempsPacific,[0.1,0.5,0.9])
+	quantsSIndian_Expect[l,::] = np.quantile(TempsIndian,[0.1,0.5,0.9])
+
+if(Options["whichClusters"] == "nolength"):
+	for l in range(8,10):
+		boxplotsAll.append([])
+		boxplotsAtlantic.append([])
+		boxplotsPacific.append([])
+		boxplotsSAtlantic.append([])
+		boxplotsSPacific.append([])
+		boxplotsSIndian.append([])
+	
+		quantsAll_Expect[l,::] = np.nan
+		quantsAtlantic_Expect[l,::] =  np.nan
+		quantsPacific_Expect[l,::] = np.nan
+		quantsSAtlantic_Expect[l,::] = np.nan
+		quantsSPacific_Expect[l,::] = np.nan
+		quantsSIndian_Expect[l,::] = np.nan
+	
+
+
+
+### BOX PLOTS
+fig = plt.figure(figsize=(12,2.67))
+ax = plt.subplot(1, 1, 1)
+bxplotAll = plt.boxplot(boxplotsAll, positions=np.array(np.arange(len(boxplotsAll)))*2.0-0.75, widths=0.2, flierprops=dict(markeredgecolor='black',markersize=0.6))
+bxplotAtl = plt.boxplot(boxplotsAtlantic, positions=np.array(np.arange(len(boxplotsAll)))*2.0-0.45, widths=0.2, flierprops=dict(markeredgecolor='#9a0200',markersize=0.6))
+bxplotPac = plt.boxplot(boxplotsPacific, positions=np.array(np.arange(len(boxplotsAll)))*2.0-0.15, widths=0.2,flierprops=dict(markeredgecolor='darkblue',markersize=0.6))
+bxplotSAtl = plt.boxplot(boxplotsSAtlantic, positions=np.array(np.arange(len(boxplotsAll)))*2.0+0.15, widths=0.2,flierprops=dict(markeredgecolor='#e17701',markersize=0.6))
+bxplotSPac = plt.boxplot(boxplotsSPacific, positions=np.array(np.arange(len(boxplotsAll)))*2.0+0.45, widths=0.2,flierprops=dict(markeredgecolor='#75bbfd',markersize=0.6))
+bxplotSIndi = plt.boxplot(boxplotsSIndian, positions=np.array(np.arange(len(boxplotsAll)))*2.0+0.75, widths=0.2,flierprops=dict(markeredgecolor='#3f9b0b',markersize=0.6))
+
+# setting colors for each groups
+# =["black",'xkcd:deep red','darkblue','xkcd:pumpkin','xkcd:sky blue','xkcd:grass green'],
+define_box_properties(bxplotAll, 'black', 'All')
+define_box_properties(bxplotAtl, '#9a0200', 'N. Atlantic')
+define_box_properties(bxplotPac, 'darkblue', 'N. Pacific')
+define_box_properties(bxplotSAtl, '#e17701', 'S. Atlantic') #e17701
+define_box_properties(bxplotSPac, '#75bbfd', 'S. Pacific')
+define_box_properties(bxplotSIndi, '#3f9b0b', 'S. Indian')
+
+# Add results from random sampling
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.75,quantsAll_Expect[:,0],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.75,quantsAll_Expect[:,1],marker='+',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.75,quantsAll_Expect[:,2],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+#NH
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.45,quantsAtlantic_Expect[:,0],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.45,quantsAtlantic_Expect[:,1],marker='+',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.45,quantsAtlantic_Expect[:,2],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.15,quantsPacific_Expect[:,0],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.15,quantsPacific_Expect[:,1],marker='+',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0-0.15,quantsPacific_Expect[:,2],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+#SH
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.15,quantsSAtlantic_Expect[:,0],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.15,quantsSAtlantic_Expect[:,1],marker='+',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.15,quantsSAtlantic_Expect[:,2],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.45,quantsSPacific_Expect[:,0],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.45,quantsSPacific_Expect[:,1],marker='+',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.45,quantsSPacific_Expect[:,2],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.75,quantsSIndian_Expect[:,0],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.75,quantsSIndian_Expect[:,1],marker='+',color="dimgrey",s=6,linewidth=1,zorder=2)
+plt.scatter(np.array(np.arange(len(boxplotsAll)))*2.0+0.75,quantsSIndian_Expect[:,2],marker='x',color="dimgrey",s=6,linewidth=1,zorder=2)
+
+# set the x label values
+plt.xticks(np.arange(0, len(ticks) * 2, 2), ticks)
+ax.set_yticks(np.arange(0,10)) #np.arange(0, 5)
+
+#X -Y labels
+plt.ylabel("Max. Laplacian")
+plt.xlabel("Nr. of storms in cluster")
+ 
+# set the limit for x axis
+plt.xlim(-2, len(ticks)*2)
+
+# Hide the right and top spines
+ax.spines[['right', 'top']].set_visible(False)
+
+# Add gridlines
+ax.grid(linewidth=0.5,axis='y',zorder=0)
+
+plt.tight_layout()
+plt.savefig("Boxplots_"+ Options["whichClusters"] + ".pdf")
 
 
 """
