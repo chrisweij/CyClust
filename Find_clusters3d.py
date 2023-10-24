@@ -124,7 +124,7 @@ starttime = timer()
 for strm1 in range(nrstorms): 
     if(strm1%100 == 0):
         print(strm1) 
-    #print("Strm1 :" + str(uniq_ids[strm1]))
+    print("Strm1 :" + str(uniq_ids[strm1]))
     selidxs1 = ids_storms[uniq_ids[strm1]] 
     
     lats1 = str_lat[selidxs1]	
@@ -149,9 +149,9 @@ for strm1 in range(nrstorms):
         conn, angle, dt, dr, strConn1, strConn2  =\
             connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
         
-        if conn != 0: 
-            print(strConn1)
-            print(strConn2)
+        #if conn != 0: 
+            #print(strConn1)
+            #print(strConn2)
         
         #Save Results in arrays
         connTracks[strm2,strm1] = conn
@@ -248,6 +248,6 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
 
 # TO DO: Update to remove warning message
-np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected)
+np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected, dtTracks=dtTracks, drTracks=drTracks,angleTracks=angleTracks)
 
 
