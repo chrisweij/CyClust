@@ -301,6 +301,20 @@ def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
 
 def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
                      Options):
+        '''
+        Function to check if two storm tracks are 'clustered', according to certain distance criteria
+        
+        Input:
+        lons1,  longitude (in degrees) of track 1
+        lats1, latitude (in degrees) of track 1
+        times1, times of track 1
+        lons2,  longitude (in degrees) of track 2
+        lats2, latitude (in degrees) of track 2
+        times2, times of track 2
+        Options, 
+        
+        In Options:
+        '''
     
         conn = 0
         angle = 0
@@ -311,17 +325,26 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
     
         dists, timdiffs, timspacediff  = compare_trks_np(lons2,lats2,times2,lons1,lats1,times1,Options["timthresh"]) #,timthresh timspacediff,
 
-        #Calculate distance over which storms are connected
-        #First select just the lons, lats times over which a particular storm is connected
-        pntselect = np.nanmax((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]),axis=0) #*Rossby_45
+        ###############################################################################
+        # Step 1: Selection of points over which a particular storm tracks are connected
+        # First it is checked at each point if the local distance and temporal criteria are satisfied, 
+        # gives a matrix of m x n, with m length of track 1, and n length track 2
+        ###############################################################################
+        point_check = (np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"])
+        #Secondly, check which points along track 1 are connected to any (arbitrary) point of track 2
+        pntselect = np.nanmax(point_check,axis=0) #*Rossby_45
         test1 = np.nansum(pntselect) 
+        
         #Do the same for the other track
-        pntselect2 = np.nanmax((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]),axis=1) #*Rossby_45
+        pntselect2 = np.nanmax(point_check,axis=1) #*Rossby_45
         test2 = np.nansum(pntselect2)
 
         nrPairs = np.nansum((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]))
-        #print(nrPairs)
 
+        ###############################################################################
+        # Step 2: Calculate distance and time over which storm tracks are connected
+        # Only makes sense if at least two points are connected along each track
+        ###############################################################################
         if((test1 >=2) & (test2 >= 2)):
             pntdists, pnttimdiffs, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
 
