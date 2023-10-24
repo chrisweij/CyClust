@@ -21,9 +21,9 @@ start = time.time()
 #########################
 # Load storm tracks 
 #########################
-str_id, str_nr, str_dt, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
+#str_id, str_nr, str_dt, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
 
-#str_id, str_nr, str_dt, str_lat, str_lon = read_file_clim(Options["st_file"],Options["nrskip"])
+str_id, str_nr, str_dt, str_lat, str_lon = read_file_clim(Options["st_file"],Options["nrskip"])
 
 #Convert to an array
 str_dt          = np.array(str_dt)
@@ -149,9 +149,9 @@ for strm1 in range(nrstorms):
         conn, angle, dt, dr, strConn1, strConn2  =\
             connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
         
-        if conn != 0: 
-            print(strConn1)
-            print(strConn2)
+        #if conn != 0: 
+        #    print(strConn1)
+        #    print(strConn2)
         
         #Save Results in arrays
         connTracks[strm2,strm1] = conn
