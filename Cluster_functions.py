@@ -42,6 +42,8 @@ def read_file_clim(st_file, nrskip=0):
     for idx in range(len(str_year)):  
 
         str_dt.append(dt(str_year[idx]-1,12,1,0) + td(days=(str_day[idx]-1)/4))
+	
+    str_dt = np.array(str_dt)
     
     return str_id, str_nr, str_dt, str_lat, str_lon
     
