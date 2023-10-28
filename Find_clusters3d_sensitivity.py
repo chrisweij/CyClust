@@ -1,27 +1,22 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8
 
-from scipy.ndimage.filters import gaussian_filter
 #from geopy.distance import great_circle as great_circle_old
-
 from datetime import datetime as dt, timedelta as td
-import matplotlib.dates as mdates 
-
-import dynlib.diag
-import matplotlib 
-matplotlib.use("agg")
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import numpy as np
 from numpy import loadtxt
 
-#exec(open("projection.py").read())
-#from dynlib import sphere, cm
+import sparse
+from scipy.sparse import dok_matrix
 import time
-from numpy import loadtxt
-from Cluster_functions import calc_Rossby_radius, compare_trks_np, find_cluster
-
 from timeit import default_timer as timer
+import yaml
+from Cluster_functions import read_file, read_file_clim, dt_array
+
+with open("Options.yaml") as f:
+    Options = yaml.safe_load(f)
+
+start = time.time()
 
 #########################
 # Thresholds
@@ -31,7 +26,7 @@ from timeit import default_timer as timer
 distthresh = 1.0 #1000.0
 
 #2. Time criterium
-timthresh = 30.0
+timthresh = 36.0
 
 #3. Length criterium 
 lngthresh = 1.5 #1.5 #2.0 #calc_Rossby_radius(lat=45)*2.0 # 1000.0
@@ -45,84 +40,45 @@ distthreshs = np.arange(0.5,1.51,0.1)
 #timthreshs =  [30.0] #[1.0]
 #distthreshs = [1.0]
 #lngthreshs = [1.5] #[1.5]
-
-timmeth = "absolute" #"median" 
-Rossby_45 = calc_Rossby_radius(lat=45)
+#timmeth = "absolute" #"median" 
+#Rossby_45 = calc_Rossby_radius(lat=45)
 
 str_result = "Results_DJF_ERA5_" 
 outdir = "/home/WUR/weije043/Clusters_Sensitivity/"
 
 #########################
-# Load storm tracks
+# Load storm tracks 
 #########################
-#Storm tracks file
-st_file = "tracks_NH.txt"
-st_file = "Selected_tracks_1979to2018_0101to1231"
+str_id, str_nr, str_dt, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
+#str_id, str_nr, str_dt, str_lat, str_lon = read_file_clim(Options["st_file"],Options["nrskip"])
 
-if(st_file == "tracks_NH.txt"):
-	nrskip = 1
-	str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
-	str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
-	str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
-	str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3])
-	str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
-	str_result = "Results_DJF_NH_dist_"
-	
-	#Determine datetime array for the tracks
-	str_dt = []
-	str_hour = np.zeros(len(str_date))
-	str_day = np.zeros(len(str_date))
-	str_month = np.zeros(len(str_date))
-	str_year = np.zeros(len(str_date))
-	for idx in range(len(str_date)):
-		year = int(str(str_date[idx])[:4])
-		month = int(str(str_date[idx])[4:6])
-		day   = int(str(str_date[idx])[6:8])
-		hour   = int(str(str_date[idx])[8:10])
-		str_hour[idx] = hour
-		str_day[idx] = day
-		str_month[idx] = month
-		str_year[idx] = year
-		str_dt.append(dt(year,month,day,hour))
-	#Convert to an array
-	str_dt          = np.array(str_dt)
-else:
-	nrskip = 0
-	str_id   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[0],dtype=int)
-	str_nr   = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[1],dtype=int)
-	str_year = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[2],dtype=int)
-	str_date = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[3],dtype=int)
-	str_lat  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[5])
-	str_lon  = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[4])
-	#str_vort = loadtxt(st_file, comments="#", unpack=False,skiprows=nrskip,usecols=[6])
-	
-	str_dt = np.array([dt(x,12,1,0,0) for x in str_year]) + np.array([td(hours=(int(x)-1)*6) for x in str_date])
-
+#Convert to an array
+str_dt          = np.array(str_dt)
 str_connected   = np.zeros(str_dt.shape)
 
-nrstorms = np.nanmax(str_id)
+from Cluster_functions import *
 
-#Check which year, month, hemisphere belongs storms to
-start = time.time()
-wintstrms = np.zeros(np.nanmax(str_id))
-yrstorms = np.zeros(np.nanmax(str_id))
-mnstorms = np.zeros(np.nanmax(str_id))
-hemstorms = np.full(np.nanmax(str_id),"Undefined")
+#########################
+# Get indices of storms 
+# so that ids_storms[id] gives the ids in the arrays
+# str_id, str_lon,.. belonging to that specific storm
+#########################
+uniq_ids = np.unique(str_id)
+ids_storms = get_indices_sparse(str_id)
+nrstorms = len(uniq_ids)
+
+#########################
+# Preprocess storm tracks
+#########################
+
+#Check which hemisphere belongs storms to
+hemstorms = np.full(nrstorms,"Undefined")
 firstdt = []
 lastdt = []
-for strid in range(nrstorms):
-	dt_temp = str_dt[str_id == strid + 1]
-	lat_temp = str_lat[str_id == strid + 1]
 
-	#Check which winter it belongs to
-	tmpyear = dt_temp[0].year
-	tmpmonth = dt_temp[0].month
-	yrstorms[strid] = tmpyear
-	mnstorms[strid] = tmpmonth
-
-	if(tmpmonth < 11):
-		tmpyear = tmpyear - 1
-	wintstrms[strid] = tmpyear
+for strid in range(nrstorms):    
+	dt_temp = str_dt[ids_storms[uniq_ids[strid]]]
+	lat_temp = str_lat[ids_storms[uniq_ids[strid]]]
 
 	#Save the first and last dt
 	firstdt.append(dt_temp[0])
@@ -139,28 +95,183 @@ firstdt = np.array(firstdt)
 lastdt = np.array(lastdt)
 print(start-end)
 
-#Months of storm, relative to beginning of 1979
-mnstorms_rel = (yrstorms - 1979)*12.0 + mnstorms
-refdt = dt(1979,1,1,0,0)
-diffs = [(x - refdt).total_seconds()/3600 for x in str_dt]                                                                                                                                      
-
+#######################################
 # START SENSITIVITY EXPERIMENTS
+#######################################
 for distthresh in distthreshs: #[0:1]
 #for lngthresh in lngthreshs:
-	#for distthresh in distthreshs[0:4]:
-	for timthresh in timthreshs: #[0:1]
+    #for distthresh in distthreshs[0:4]:
+    for timthresh in timthreshs: #[0:1]
 
-		#Convert timthresh to td object 
-		timthresh_dt = td(hours=timthresh)
+        #Convert timthresh to td object 
+        timthresh_dt = td(hours=timthresh)
+        Options["timthresh"] = timthresh
+        Options["distthresh"] = distthresh
+        
+        #for timthresh in timthreshs:
+        print("---------------------------------------------")
+        print("Start checking for:                          ")
+        print("Distance threshold = " + str(distthresh))
+        print("Time threshold = " + str(timthresh))
+        print("Length threshold = " + str(lngthresh))
+        print("Length threshold = " + str(lngthresh))
+        print("---------------------------------------------")
+        
+        #Convert timthresh to td object 
+        timthresh_dt = td(hours=Options["timthresh"])
+        
+        #########################
+        # Define result arrays
+        #########################
+        if(Options["frameworkSparse"] == False):
+            connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+            angleTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+            drTracks  = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+            dtTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
+        else:
+            connTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
+            angleTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
+            drTracks  = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
+            dtTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
 
-	#for timthresh in timthreshs:
-		print("---------------------------------------------")
-		print("Start checking for:                          ")
-		print("Distance threshold = " + str(distthresh))
-		print("Time threshold = " + str(timthresh))
-		print("Length threshold = " + str(lngthresh))
-		print("---------------------------------------------")
+        ######################################################
+        # Step 1 Find connected and clustered storms
+        #######################################################
 
+        starttime = timer()
+        for strm1 in range(nrstorms): 
+            if(strm1%100 == 0):
+                print(strm1) 
+            print("Strm1 :" + str(uniq_ids[strm1]))
+            selidxs1 = ids_storms[uniq_ids[strm1]] 
+
+            lats1 = str_lat[selidxs1]	
+            lons1 = str_lon[selidxs1]
+            times1 = str_dt[selidxs1]
+
+            #Only compare with storms which are close enought im time compared to strm1 
+            diffdt1  = firstdt - lastdt[strm1]
+            diffdt2  = firstdt[strm1] - lastdt
+
+            #To do: Check if this can be speed up
+            strm2idxs = np.where((np.arange(nrstorms) > strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
+
+            for strm2 in strm2idxs: 
+
+                selidxs2 = ids_storms[uniq_ids[strm2]] 
+                lats2 = str_lat[selidxs2]
+                lons2 = str_lon[selidxs2] 
+                times2 = str_dt[selidxs2]
+
+                #Check if storm 1 and 2 are connected
+                conn, angle, dt, dr, strConn1, strConn2  =\
+                    connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
+
+                #if conn != 0: 
+                #    print(strConn1)
+                #    print(strConn2)
+
+                #Save Results in arrays
+                connTracks[strm2,strm1] = conn
+                connTracks[strm1,strm2] = conn
+                angleTracks[strm1,strm2] = angle
+                dtTracks[strm1,strm2] = dt
+                drTracks[strm1,strm2] = dr
+
+                str_connected[selidxs1] += strConn1
+                str_connected[selidxs2] += strConn2
+
+        print(timer() - starttime) # Time in seconds
+
+        if(Options["frameworkSparse"] == True):
+            connTracks = connTracks.tocsr()
+
+        ########################
+        # Step 2 Find clusters
+        ########################
+        clusters = []
+        maxlength = 1
+
+        for stridx in range(nrstorms):
+            #print(stridx)
+            if(Options["frameworkSparse"] == True):
+                clusttemp = find_cluster_type_dokm([stridx],connTracks)        
+            else:
+                clusttemp, connTypes, clusterType = find_cluster_type([stridx],connTracks) 
+            #clusttemp2, connTypes2, anglesClust2, clusterType2, angleType = find_cluster_type2([stridx],connTracks, angleTracks)
+
+            if(len(clusttemp) > maxlength):
+                maxlength = len(clusttemp)
+
+            clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
+            clusters.append(clusttemp)
+
+        #Delete duplicates and sort on the first number in clusters:
+        unique_clusters = [list(x) for x in set(tuple(x) for x in clusters)]
+
+        #from operator import itemgetter
+        sorted_clusters =  sorted(unique_clusters)
+        print(timer() - starttime) # Time in seconds
+
+        ############################
+        # Step 3 Suborder clusters
+        ############################
+        sorted_subclusters_length = []
+        sorted_subclusters_nolength = []
+
+        for cluster in sorted_clusters:
+            #print(stridx)
+            subclusters_length = []
+            subclusters_nolength = []
+
+            for strid in cluster:
+
+                #Convert strid to index
+                stridx = [i for i in range(len(uniq_ids)) if uniq_ids[i] == strid]
+                #np.where(uniq_ids == strid)[0]
+
+                #Length clusters
+                if(Options["frameworkSparse"] == True):
+                    clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Length")
+                else:
+                    clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Length")
+
+                clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
+                subclusters_length.append(clusttemp)
+
+                #Stationary clusters
+                if(Options["frameworkSparse"] == True):
+                    clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="NoLength")
+                else:
+                    clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="NoLength") 
+
+                clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
+                subclusters_nolength.append(clusttemp)
+
+            #Delete duplicates and sort on the first number in (sub)clusters:
+            unique_subclusters = [list(x) for x in set(tuple(x) for x in subclusters_length)]
+            sorted_subclusters_length.append(sorted(unique_subclusters))
+
+            #Delete duplicates and sort on the first number in (sub)clusters:
+            unique_subclusters = [list(x) for x in set(tuple(x) for x in subclusters_nolength)]
+            sorted_subclusters_nolength.append(sorted(unique_subclusters))
+
+        sorted_clusters_length = sorted(unnest(sorted_subclusters_length))
+        sorted_clusters_nolength = sorted(unnest(sorted_subclusters_nolength))
+
+        ######################################################
+        # Save results
+        ######################################################
+        formatter =  "{:1.1f}"
+        outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_timoverlap_" +  formatter.format(Options["timlngthresh"]*6.0)
+        #outfile = outdir + str_result + formatter.format(distthresh) + "_tim_" + formatter.format(timthresh) + "_length_" + formatter.format(lngthresh)
+        
+        # TO DO: Update to remove warning message
+        np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected, dtTracks=dtTracks, drTracks=drTracks,angleTracks=angleTracks)
+
+        
+        
+'''        
 		######################################################
 		# Find connected and clustered storms
 		#######################################################
@@ -302,7 +413,7 @@ for distthresh in distthreshs: #[0:1]
 		formatter =  "{:1.1f}"
 		outfile = outdir + str_result + formatter.format(distthresh) + "_tim_" + formatter.format(timthresh) + "_length_" + formatter.format(lngthresh)
 		np.savez(outfile, sorted_clusters=sorted_clusters, lengths = lengths, lengthclust= lengthclust, winters=winters,nrclst_wint = nrclst_wint, nrstrm_wint = nrstrm_wint, nrstrmclst_wint = nrstrmclst_wint,maxdists=np.array(maxdists),str_connected = str_connected)
-
+'''
 
 """
 #NH fraction
