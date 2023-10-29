@@ -30,7 +30,7 @@ from cmocean import cm as cmoc
 from mpl_toolkits.basemap import Basemap
 import os
 
-clustchar = "nolength" #"length""nolength" or "all"
+clustchar = "length" #"length""nolength" or "all"
 minstorms = 2
 distchar = "250km"
 
@@ -142,7 +142,7 @@ for yidx in range(1979,2017):
     dt_array_temp = np.array([start + td(hours=i*6) for i in range(nr_times)])
     dt_array.extend(dt_array_temp)
 
-def calc_density_radius(distchar = "250km", dist_thresh=250):
+def calc_density_radius(distchar = "250km", dist_thresh=250, save=False, outfile="Density.npz"):
     #Define arrays
     lats = np.arange(90,-90.1,-1.5)
     lons = np.arange(0,360,1.5)
@@ -161,6 +161,11 @@ def calc_density_radius(distchar = "250km", dist_thresh=250):
     tracks = np.zeros((len(dt_array),len(lats),len(lons))) #Track density
     lysis  = np.zeros((len(dt_array),len(lats),len(lons))) #Track density
     genesis  = np.zeros((len(dt_array),len(lats),len(lons))) #Track density
+    
+    mean_storms_seas = np.zeros((4,len(lats),len(lons)))
+    mean_tracks_seas = np.zeros((4,len(lats),len(lons)))
+    mean_genesis_seas = np.zeros((4,len(lats),len(lons)))
+    mean_lysis_seas = np.zeros((4,len(lats),len(lons)))
 
     #Loop over storm_tracks
     #nr_storms = np.max(str_id)
@@ -174,8 +179,8 @@ def calc_density_radius(distchar = "250km", dist_thresh=250):
         temp_lat = str_lat[ids_storms[uniq_ids[strid]]]
         temp_lon = str_lon[ids_storms[uniq_ids[strid]]]
         temp_dt  = str_dt[ids_storms[uniq_ids[strid]]]
-        temp_vort = str_vort[ids_storms[uniq_ids[strid]]]
-        temp_maxvort = np.nanmax(str_vort[ids_storms[uniq_ids[strid]]])
+        #temp_vort = str_vort[ids_storms[uniq_ids[strid]]]
+        #temp_maxvort = np.nanmax(str_vort[ids_storms[uniq_ids[strid]]])
 
         #Switch to prevent double counting	
         bool_tracks   = np.full((len(lats),len(lons)),False)
@@ -227,8 +232,47 @@ def calc_density_radius(distchar = "250km", dist_thresh=250):
     mean_tracks = np.nanmean(tracks,axis=0)*mul_fac
     mean_genesis = np.nanmean(genesis,axis=0)*mul_fac
     mean_lysis = np.nanmean(lysis,axis=0)*mul_fac
+    
+    ## seasonal differences ##
+    seasons = ["DJF","MAM","JJA","SON"]
+    
+    i=0
+    for season in seasons:
+        months = np.array([x.month for x in dt_array])
+        if(season == "DJF"):
+            selidxs = (months < 3) | (months >= 12)
+        elif(season == "MAM"):
+            selidxs = (months < 6) | (months >= 3)
+        elif(season == "JJA"):
+            selidxs = (months < 9) | (months >= 6)
+        elif(season == "SON"):
+            selidxs = (months < 12) | (months >= 8)
+
+        mean_storms_seas[i,::] = np.nanmean(storms[selidxs,::],axis=0)
+        mean_tracks_seas[i,::] = np.nanmean(tracks[selidxs,::],axis=0)
+        mean_genesis_seas[i,::] = np.nanmean(genesis[selidxs,::],axis=0)
+        mean_lysis_seas[i,::]   = np.nanmean(lysis[selidxs,::],axis=0)
+        i+=1 
+        
+    ## Optionally saving results
+    if(save):
+        np.savez(outfile, 
+        #storms=storms,
+        #tracks=tracks,
+        #genesis=genesis,
+        #lysis=lysis,
+        #yearly means
+        mean_storms=mean_storms,
+        mean_tracks=mean_tracks,
+        mean_genesis=mean_genesis,
+        mean_lysis=mean_lysis,
+        #Seasonal means
+        mean_storms_seas=mean_storms_seas,
+        mean_tracks_seas=mean_tracks_seas,
+        mean_genesis_seas=mean_genesis_seas,
+        mean_lysis_seas=mean_lysis_seas)
  
-    return mean_storms, mean_tracks, mean_genesis, mean_lysis
+    return mean_storms, mean_tracks, mean_genesis, mean_lysis, mean_storms_seas, mean_tracks_seas, mean_genesis_seas, mean_lysis_seas
 
 #ERA 5 Densities calculation  #######
 datachar = "EI"
@@ -236,12 +280,14 @@ st_file_ei = "Tracks/Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_wit
 
 str_id, str_nr, str_dt, str_lat, str_lon = read_file(st_file_ei)
 
-#Density
-mean_storms_ei, mean_tracks_ei, mean_genesis_ei, mean_lysis_ei = calc_density_radius()
+str_dt = np.array(str_dt)
 
 #Save density
 outfile="Density/Density_" + datachar + "_" + distchar + ".npz"
-np.savez(outfile, mean_storms=mean_storms_ei, mean_tracks=mean_tracks_ei,mean_genesis=mean_genesis_ei,mean_lysis=mean_lysis_ei)
+#np.savez(outfile, mean_storms=mean_storms_ei, mean_tracks=mean_tracks_ei,mean_genesis=mean_genesis_ei,mean_lysis=mean_lysis_ei)
+
+#Density
+mean_storms_ei, mean_tracks_ei, mean_genesis_ei, mean_lysis_ei, mean_storms_seas_ei, mean_tracks_seas_ei, mean_genesis_seas_ei, mean_lysis_seas_ei = calc_density_radius(save=True, outfile=outfile)
 
 #Mean density of ERA5
 plt.figure() 
@@ -286,17 +332,17 @@ str_lat = np.array([lat for (idx, lat) in zip(str_id, str_lat) if idx in clststr
 str_lon = np.array([lon for (idx, lon) in zip(str_id, str_lon) if idx in clststroms])
 str_dt = np.array([dattim for (idx, dattim) in zip(str_id, str_dt) if idx in clststroms])
 
-calc_density()
-#mean_storms_clst_era5, mean_tracks_clst_era5 = calc_density()
-mean_storms_clst_ei, mean_tracks_clst_ei, mean_genesis_clst_ei, mean_lysis_clst_ei = calc_density_radius()
-
+#calc_density()
 #Save density
 outfile="Density/Density_" +\
         datachar + "_" + distchar + "_Clust_" + clustchar + "_minstorms_" + str(minstorms) + ".npz"
 
-np.savez(outfile, mean_storms=mean_storms_clst_ei, mean_tracks=mean_tracks_clst_ei,mean_genesis=mean_genesis_clst_ei,mean_lysis=mean_lysis_clst_ei)
+#mean_storms_clst_era5, mean_tracks_clst_era5 = calc_density()
+mean_storms_clst_ei, mean_tracks_clst_ei, mean_genesis_clst_ei, mean_lysis_clst_ei, mean_storms_clst_seas_ei, mean_tracks_clst_seas_ei, mean_genesis_clst_seas_ei, mean_lysis_clst_seas_ei = calc_density_radius(save=True, outfile=outfile)
 
-#Mean density of ERA5
+#np.savez(outfile, mean_storms=mean_storms_clst_ei, mean_tracks=mean_tracks_clst_ei,mean_genesis=mean_genesis_clst_ei,mean_lysis=mean_lysis_clst_ei)
+
+#Mean density of EI clustered
 plt.figure() 
 overlays = [fig.map_overlay_contour(mean_storms_ei[::,::]*100,  grid,title=None,cb_label='% per 1000 km$^2$', scale=[15], linewidths=0.75)] 
 fig.map(mean_storms_clst_ei[::,::]*100,grid,m=n_hemisphere_new,overlays=overlays,mask=(oro[0,::3,::3] >= 1500),maskcolor="white",
