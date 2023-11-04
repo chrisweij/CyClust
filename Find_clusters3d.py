@@ -250,7 +250,7 @@ outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options
 np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object),str_connected = str_connected)
 
 # Save sparse arrays
-save_npz(outfile + "_dtTracks.npz",dtTracks)
-save_npz(outfile + "_drTracks.npz",drTracks)
-save_npz(outfile + "_angleTracks.npz",angleTracks)
-save_npz(outfile + "_connTracks.npz",connTracks)
+save_npz(outfile + "_dtTracks.npz",dtTracks.tocoo())
+save_npz(outfile + "_drTracks.npz",drTracks.tocoo())
+save_npz(outfile + "_angleTracks.npz",angleTracks.tocoo())
+save_npz(outfile + "_connTracks.npz",connTracks.tocoo())
