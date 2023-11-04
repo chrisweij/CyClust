@@ -7,7 +7,7 @@ import numpy as np
 from numpy import loadtxt
 
 import sparse
-from scipy.sparse import dok_matrix
+from scipy.sparse import dok_matrix, save_npz
 import time
 from timeit import default_timer as timer
 import yaml
@@ -21,9 +21,8 @@ start = time.time()
 #########################
 # Load storm tracks 
 #########################
-#str_id, str_nr, str_dt, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
-
-str_id, str_nr, str_dt, str_lat, str_lon = read_file_clim(Options["st_file"],Options["nrskip"])
+str_id, str_nr, str_dt, str_lat, str_lon = read_file(Options["st_file"],Options["nrskip"])
+#str_id, str_nr, str_dt, str_lat, str_lon = read_file_clim(Options["st_file"],Options["nrskip"])
 
 #Convert to an array
 str_dt          = np.array(str_dt)
@@ -248,6 +247,10 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"])
 
 # TO DO: Update to remove warning message
-np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object), connTracks = connTracks,str_connected = str_connected, dtTracks=dtTracks, drTracks=drTracks,angleTracks=angleTracks)
+np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object),str_connected = str_connected)
 
-
+# Save sparse arrays
+save_npz(outfile + "_dtTracks.npz",dtTracks)
+save_npz(outfile + "_drTracks.npz",drTracks)
+save_npz(outfile + "_angleTracks.npz",angleTracks)
+save_npz(outfile + "_connTracks.npz",connTracks)
