@@ -33,8 +33,10 @@ lngthresh = 1.5 #1.5 #2.0 #calc_Rossby_radius(lat=45)*2.0 # 1000.0
 
 #New set of experiments
 timthreshs = np.arange(0.25,2.6,0.25)*24.0
-lngthreshs = np.arange(0.6,2.21,0.2)
 distthreshs = np.arange(0.5,1.51,0.1)
+
+timlength_threshs = np.arange(0.5,2.6,0.25)*24.0/6.0
+lngthreshs = np.arange(0.6,2.41,0.2)
 
 #Just one threshold
 #timthreshs =  [30.0] #[1.0]
@@ -98,15 +100,20 @@ print(start-end)
 #######################################
 # START SENSITIVITY EXPERIMENTS
 #######################################
-for distthresh in distthreshs: #[0:1]
-#for lngthresh in lngthreshs:
+#for distthresh in distthreshs: #[0:1]
+for lngthresh in lngthreshs:
     #for distthresh in distthreshs[0:4]:
-    for timthresh in timthreshs: #[0:1]
+    #for timthresh in timthreshs: #[0:1]
+    for timlength_thresh in timlength_threshs: #[0:1]
+        
 
         #Convert timthresh to td object 
         timthresh_dt = td(hours=timthresh)
-        Options["timthresh"] = timthresh
-        Options["distthresh"] = distthresh
+        #Options["timthresh"] = timthresh
+        #Options["distthresh"] = distthresh
+        Options["lngthresh"] = lngthresh
+        Options["timlngthresh"] = timlength_thresh        
+        
         
         #for timthresh in timthreshs:
         print("---------------------------------------------")
@@ -141,8 +148,8 @@ for distthresh in distthreshs: #[0:1]
         starttime = timer()
         for strm1 in range(nrstorms): 
             if(strm1%100 == 0):
-                print(strm1) 
-            print("Strm1 :" + str(uniq_ids[strm1]))
+                #print(strm1) 
+                print("Strm1 :" + str(uniq_ids[strm1]))
             selidxs1 = ids_storms[uniq_ids[strm1]] 
 
             lats1 = str_lat[selidxs1]	
