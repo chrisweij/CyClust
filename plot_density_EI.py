@@ -30,9 +30,13 @@ from cmocean import cm as cmoc
 from mpl_toolkits.basemap import Basemap
 import os
 
-clustchar = "length" #"length""nolength" or "all"
+clustchar = "All" #length" #"All" #"length""nolength" or "all"
 minstorms = 2
 distchar = "250km"
+calcDensityEI = False
+calcDensityClust = False
+calcQuants = True #True
+calcDensitySolo = False
 
 # PLOTTING SETTINGS "
 scale_density = np.arange(3,25,1)
@@ -126,23 +130,24 @@ def calc_density():
     
 #Construct array with datetimes
 dt_array = []
-for yidx in range(1979,2017):
+for yidx in range(1979,2019):
 
     # To get year (integer input) from the user
     # year = int(input("Enter a year: "))
     if ((yidx + 1) % 4) == 0:
         leapyear = True
-        nr_times = 364 #366*4 #(whole year) 364 (just winter)
+        nr_times = 366*4 #(whole year) 364 (just winter)
     else:
         leapyear = False
-        nr_times = 360 #365*4 #(whole year) 360 (just winter)
+        nr_times = 365*4 #(whole year) 360 (just winter)
 
-    start = dt(yidx, 12, 1, 0) #(just winter)
+    start = dt(yidx, 1, 1, 0) #dt(yidx, 12, 1, 0) (just winter)
 
     dt_array_temp = np.array([start + td(hours=i*6) for i in range(nr_times)])
     dt_array.extend(dt_array_temp)
 
-def calc_density_radius(distchar = "250km", dist_thresh=250, save=False, outfile="Density.npz"):
+def calc_density_radius(distchar = "250km", dist_thresh=250, connect=False, save=False, outfile="Density.npz",
+                       calcQuant=False):
     #Define arrays
     lats = np.arange(90,-90.1,-1.5)
     lons = np.arange(0,360,1.5)
@@ -176,11 +181,19 @@ def calc_density_radius(distchar = "250km", dist_thresh=250, save=False, outfile
     #Loop over storms
     for strid in range(nrstorms): #clust_idxs: #range(1,nr_storms+1):
         print("Storm: " + str(strid))
-        temp_lat = str_lat[ids_storms[uniq_ids[strid]]]
-        temp_lon = str_lon[ids_storms[uniq_ids[strid]]]
-        temp_dt  = str_dt[ids_storms[uniq_ids[strid]]]
+        if(connect):
+            temp_conn = str_connected[ids_storms[uniq_ids[strid]]]
+            temp_lat = str_lat[ids_storms[uniq_ids[strid]]][temp_conn >= 1]
+            temp_lon = str_lon[ids_storms[uniq_ids[strid]]][temp_conn >= 1]
+            temp_dt  = str_dt[ids_storms[uniq_ids[strid]]][temp_conn >= 1]
+        else:
+            temp_lat = str_lat[ids_storms[uniq_ids[strid]]]
+            temp_lon = str_lon[ids_storms[uniq_ids[strid]]]
+            temp_dt  = str_dt[ids_storms[uniq_ids[strid]]]
         #temp_vort = str_vort[ids_storms[uniq_ids[strid]]]
         #temp_maxvort = np.nanmax(str_vort[ids_storms[uniq_ids[strid]]])
+
+        lngth = len(temp_dt)
 
         #Switch to prevent double counting	
         bool_tracks   = np.full((len(lats),len(lons)),False)
@@ -200,10 +213,19 @@ def calc_density_radius(distchar = "250km", dist_thresh=250, save=False, outfile
                             dist_temp = np.abs(calc_Rossby_radius(lat=lattemp))
                         else:
                             dist_temp = calc_Rossby_radius(lat=20.0)
-                    if(np.abs(temp_lat[tridx] - lats[latidx]) <= dist_temp/111): 
+                    
+                    difflat = np.abs(temp_lat[tridx] - lats[latidx])
+                    difflon = np.abs(temp_lon[tridx] - lons[latidx])
+                    if(difflat <= dist_temp/111): 
                         for lonidx in range(len(lons)):
+                            #Prevent
+                            distest = (difflat**2.0 + difflon**2.0)**0.5*111.0 
+                            
                             #Calculate distance to grid point
-                            dist = great_circle(temp_lat[tridx],temp_lon[tridx], lats[latidx],lons[lonidx])
+                            if(distest < dist_temp): #Overestimates the actual distance
+                                dist = dist_temp
+                            else: #If distance is to big, calculate the real distance
+                                dist = great_circle(temp_lat[tridx],temp_lon[tridx], lats[latidx],lons[lonidx])
 
                             #If distance is < 500 km increase nr. of storms
                             if ((dist < dist_temp)): 
@@ -242,20 +264,106 @@ def calc_density_radius(distchar = "250km", dist_thresh=250, save=False, outfile
         if(season == "DJF"):
             selidxs = (months < 3) | (months >= 12)
         elif(season == "MAM"):
-            selidxs = (months < 6) | (months >= 3)
+            selidxs = (months < 6) & (months >= 3)
         elif(season == "JJA"):
-            selidxs = (months < 9) | (months >= 6)
+            selidxs = (months < 9) & (months >= 6)
         elif(season == "SON"):
-            selidxs = (months < 12) | (months >= 8)
+            selidxs = (months < 12) & (months >= 9)
 
-        mean_storms_seas[i,::] = np.nanmean(storms[selidxs,::],axis=0)
-        mean_tracks_seas[i,::] = np.nanmean(tracks[selidxs,::],axis=0)
-        mean_genesis_seas[i,::] = np.nanmean(genesis[selidxs,::],axis=0)
-        mean_lysis_seas[i,::]   = np.nanmean(lysis[selidxs,::],axis=0)
+        mean_storms_seas[i,::] = np.nanmean(storms[selidxs,::],axis=0)*mul_fac
+        mean_tracks_seas[i,::] = np.nanmean(tracks[selidxs,::],axis=0)*mul_fac
+        mean_genesis_seas[i,::] = np.nanmean(genesis[selidxs,::],axis=0)*mul_fac
+        mean_lysis_seas[i,::]   = np.nanmean(lysis[selidxs,::],axis=0)*mul_fac
         i+=1 
         
+    ##########################################
+    # Median and quantiles of recurrence time
+    ##########################################
+    if(calcQuant):   
+        quantiles = [0.05,0.1,0.25,0.5,0.75,0.9,0.95]
+        recur_quantiles = np.full((7,len(lats),len(lons)),np.nan)
+        recur_quantiles_DJF = np.full((7,len(lats),len(lons)),np.nan)
+        tidxs = (months <= 2) | (months == 12)
+        for latidx in range(len(lats)):
+            for lonidx in range(len(lons)):
+                #Differences between times when there is a new storm at certain lat and lon
+                onesidxs = np.where(tracks[:,latidx,lonidx] >= 1)[0]
+                onesidxs_DJF = np.where(tracks[tidxs,latidx,lonidx] >= 1)[0]
+                difftim  = (onesidxs[1:] - onesidxs[:-1])*0.25
+                difftim_DJF  = (onesidxs_DJF[1:] - onesidxs_DJF[:-1])*0.25
+                difftim_DJF = difftim_DJF[difftim_DJF <= 93] #Exclude the storm difference between different seasons
+
+                #The above does not include the 
+                multiple = np.sum((tracks[:,latidx,lonidx]-1)[np.where(tracks[:,latidx,lonidx] > 1)[0]]) #Nr. of times with dt=0
+                if(multiple > 0):
+                    difftim = np.append(difftim,np.zeros(np.int(multiple)))
+
+                multiple_DJF = np.sum((tracks[tidxs,latidx,lonidx]-1)[np.where(tracks[tidxs,latidx,lonidx] > 1)[0]]) #Nr. of times with dt=0
+                if(multiple_DJF > 0):
+                    difftim_DJF = np.append(difftim_DJF,np.zeros(np.int(multiple_DJF)))
+
+                #Get quantiles
+                if(len(difftim) > 0):
+                    recur_quantiles[:,latidx,lonidx] = np.quantile(difftim,quantiles)
+                if(len(difftim_DJF) > 0):
+                    recur_quantiles_DJF[:,latidx,lonidx] = np.quantile(difftim_DJF,quantiles)
+
+        strm_mask = (mean_tracks < 0.01)
+        #Median
+        plt.figure()
+        fig.map(recur_quantiles[3,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="Median recurrence rate",extend="both", scale=np.arange(1,3.6,0.25)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Median_distance_" + datachar + "_" + distchar + ".pdf")
+
+        plt.figure()
+        fig.map(recur_quantiles_DJF[3,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="Median recurrence rate",extend="both", scale=np.arange(1,3.6,0.25)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Median_distance_" + datachar + "_" + distchar + "_DJF.pdf")
+
+        #Quantile
+        plt.figure()
+        fig.map(recur_quantiles[1,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="10% quantile recurrence rate",extend="both", scale=np.arange(0,2,0.25)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Quantile_5_distance_" + datachar + "_" + distchar + ".pdf")
+
+        plt.figure()
+        fig.map(recur_quantiles[1,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="10% quantile recurrence rate",extend="both", scale=np.arange(0,2,0.25)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Quantile_10_distance_" + datachar + "_" + distchar + ".pdf")
+
+        plt.figure()
+        fig.map(recur_quantiles[2,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="25% quantile recurrence rate",extend="both", scale=np.arange(0.25,2.6,0.25)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Quantile_25_distance_" + datachar + "_" + distchar + ".pdf")
+
+        plt.figure()
+        fig.map(recur_quantiles[4,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="75% quantile recurrence rate",extend="both", scale=np.arange(1.5,5.1,0.5)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Quantile_75_distance_" + datachar + "_" + distchar + ".pdf")
+
+        plt.figure()
+        fig.map(recur_quantiles[5,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="90% quantile recurrence rate",extend="both", scale=np.arange(4,10,1)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Quantile_90_distance_" + datachar + "_" + distchar + ".pdf")
+
+        plt.figure()
+        fig.map(recur_quantiles[6,::],grid,cmap="PuBuGn",mask=strm_mask,maskcolor="white",title="95% quantile recurrence rate",extend="both", scale=np.arange(6,12,1.0)) #np.arange(2,12.1,1)
+        plt.savefig("Plots/Final/Quantile_95_distance_" + datachar + "_" + distchar + ".pdf")        
+
+
     ## Optionally saving results
-    if(save):
+    if(save and calcQuant):
+        np.savez(outfile, 
+        #storms=storms,
+        #tracks=tracks,
+        #genesis=genesis,
+        #lysis=lysis,
+        #yearly means
+        mean_storms=mean_storms,
+        mean_tracks=mean_tracks,
+        mean_genesis=mean_genesis,
+        mean_lysis=mean_lysis,
+        #Seasonal means
+        mean_storms_seas=mean_storms_seas,
+        mean_tracks_seas=mean_tracks_seas,
+        mean_genesis_seas=mean_genesis_seas,
+        mean_lysis_seas=mean_lysis_seas,
+        recur_quantiles=recur_quantiles,
+        recur_quantiles_DJF=recur_quantiles_DJF)      
+    elif(save):
         np.savez(outfile, 
         #storms=storms,
         #tracks=tracks,
@@ -271,23 +379,29 @@ def calc_density_radius(distchar = "250km", dist_thresh=250, save=False, outfile
         mean_tracks_seas=mean_tracks_seas,
         mean_genesis_seas=mean_genesis_seas,
         mean_lysis_seas=mean_lysis_seas)
+        
+
  
     return mean_storms, mean_tracks, mean_genesis, mean_lysis, mean_storms_seas, mean_tracks_seas, mean_genesis_seas, mean_lysis_seas
 
 #ERA 5 Densities calculation  #######
 datachar = "EI"
 st_file_ei = "Tracks/Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
-
 str_id, str_nr, str_dt, str_lat, str_lon = read_file(st_file_ei)
-
 str_dt = np.array(str_dt)
+
 
 #Save density
 outfile="Density/Density_" + datachar + "_" + distchar + ".npz"
 #np.savez(outfile, mean_storms=mean_storms_ei, mean_tracks=mean_tracks_ei,mean_genesis=mean_genesis_ei,mean_lysis=mean_lysis_ei)
 
-#Density
-mean_storms_ei, mean_tracks_ei, mean_genesis_ei, mean_lysis_ei, mean_storms_seas_ei, mean_tracks_seas_ei, mean_genesis_seas_ei, mean_lysis_seas_ei = calc_density_radius(save=True, outfile=outfile)
+if(calcDensityEI):
+    #Density
+    mean_storms_ei, mean_tracks_ei, mean_genesis_ei, mean_lysis_ei, mean_storms_seas_ei, mean_tracks_seas_ei, mean_genesis_seas_ei, mean_lysis_seas_ei = calc_density_radius(save=True, outfile=outfile)
+else:
+    ResultsDensity = np.load(outfile)
+    mean_storms_ei = ResultsDensity["mean_storms"]
+    mean_tracks_ei = ResultsDensity["mean_tracks"]
 
 #Mean density of ERA5
 plt.figure() 
@@ -302,6 +416,11 @@ fig.map(mean_storms_ei[::,::]*100,grid,m=n_hemisphere_new,overlays=overlays,mask
 title="Storm Density",colors=colors_IMILAST, scale=scale_IMILAST, cmap=None,#cmap=cmap_IMILAST,
 cb_label='% per 1000 km$^2$',extend="both",save="Mean_Density_EI_imilast_final.pdf") #np.arange(2,12.1,1)
 
+if(calcQuants):
+    outfile="Density/Density_" + datachar + "_" + distchar + "_withQuants.npz"
+    
+    ResultsQuants = calc_density_radius(distchar = "Rossby", calcQuant=True,save=True, outfile=outfile, connect=False)
+    
 ######################################################
 # load clustering results
 ######################################################
@@ -310,7 +429,7 @@ infile = Options["outdir"] +  Options["str_result"]  + formatter.format( Options
 Results = np.load(infile,allow_pickle=True)
  
 # All clusters
-if(clustchar == "all"):
+if(clustchar == "All"):
     sorted_clusters = Results["sorted_clusters"]
 elif(clustchar == "nolength"):
     # Only Subclusters (lengtg or nolength)
@@ -321,31 +440,58 @@ elif(clustchar == "length"):
     sorted_subclusters = Results["sorted_subclusters_length"]
     sorted_clusters = sorted(unnest(sorted_subclusters))
 
-#Filter clusterd storms
+#Get str_connected
+str_connected = Results["str_connected"]
 strmidxs = np.unique(str_id)
-clststroms = [strm for cluster in sorted_clusters for strm in cluster if len(cluster) >= minstorms and strm in strmidxs]
-clststroms = sorted(clststroms)
+
+if(calcDensityClust):
+    #Filter clusterd storms
+    clststroms = [strm for cluster in sorted_clusters for strm in cluster if len(cluster) >= minstorms and strm in strmidxs]
+    clststroms = sorted(clststroms)
+
+    #Subselect arrays
+    str_id = np.array([idx for idx in str_id if idx in clststroms])
+    str_lat = np.array([lat for (idx, lat) in zip(str_id, str_lat) if idx in clststroms])
+    str_lon = np.array([lon for (idx, lon) in zip(str_id, str_lon) if idx in clststroms])
+    str_dt = np.array([dattim for (idx, dattim) in zip(str_id, str_dt) if idx in clststroms])
+    str_connected = np.array([conn for (idx, conn) in zip(str_id, str_connected) if idx in clststroms])
+
+    #calc_density()
+    #Save density
+    outfile="Density/Density_" + "_" + distchar + "_" +\
+            Options["str_result"]  + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"    ]) +\
+            "_Clust_" + clustchar + "_minstorms_" + str(minstorms) + "_connect.npz"
+
+    #mean_storms_clst_era5, mean_tracks_clst_era5 = calc_density()
+    mean_storms_clst_ei, mean_tracks_clst_ei, mean_genesis_clst_ei, mean_lysis_clst_ei, mean_storms_clst_seas_ei, mean_tracks_clst_seas_ei, mean_genesis_clst_seas_ei, mean_lysis_clst_seas_ei = calc_density_radius(save=True, outfile=outfile, connect=True)
+
+    #np.savez(outfile, mean_storms=mean_storms_clst_ei, mean_tracks=mean_tracks_clst_ei,mean_genesis=mean_genesis_clst_ei,mean_lysis=mean_lysis_clst_ei)
+
+    #Mean density of EI clustered
+    plt.figure() 
+    overlays = [fig.map_overlay_contour(mean_storms_ei[::,::]*100,  grid,title=None,cb_label='% per 1000 km$^2$', scale=[15], linewidths=0.75)] 
+    fig.map(mean_storms_clst_ei[::,::]*100,grid,m=n_hemisphere_new,overlays=overlays,mask=(oro[0,::3,::3] >= 1500),maskcolor="white",
+    title="Storm Density",colors=colors_IMILAST, scale=scale_IMILAST, cmap=None, #cmap=cmap_IMILAST, #np.arange(2,12.1,1)
+    cb_label='% per 1000 km$^2$',extend="both",
+    save="Mean_Density_ERA5_Clust_" + formatter.format( Options["timthresh"]) + "_" + clustchar + "_minstorms_" + str(minstorms) + "_connect.pdf")  
     
-#Subselect arrays
-str_id = np.array([idx for idx in str_id if idx in clststroms])
-str_lat = np.array([lat for (idx, lat) in zip(str_id, str_lat) if idx in clststroms])
-str_lon = np.array([lon for (idx, lon) in zip(str_id, str_lon) if idx in clststroms])
-str_dt = np.array([dattim for (idx, dattim) in zip(str_id, str_dt) if idx in clststroms])
+elif(calcDensitySolo):
+    #Filter clusterd storms
+    solo_storms = [strm for cluster in sorted_clusters for strm in cluster if len(cluster) == 1 and strm in strmidxs]
+    solo_storms = sorted(solo_storms)
+    
+    #Subselect arrays
+    str_id = np.array([idx for idx in str_id if idx in solo_storms])
+    str_lat = np.array([lat for (idx, lat) in zip(str_id, str_lat) if idx in solo_storms])
+    str_lon = np.array([lon for (idx, lon) in zip(str_id, str_lon) if idx in solo_storms])
+    str_dt = np.array([dattim for (idx, dattim) in zip(str_id, str_dt) if idx in solo_storms])
+    str_connected = np.array([conn for (idx, conn) in zip(str_id, str_connected) if idx in solo_storms])
 
-#calc_density()
-#Save density
-outfile="Density/Density_" +\
-        datachar + "_" + distchar + "_Clust_" + clustchar + "_minstorms_" + str(minstorms) + ".npz"
-
-#mean_storms_clst_era5, mean_tracks_clst_era5 = calc_density()
-mean_storms_clst_ei, mean_tracks_clst_ei, mean_genesis_clst_ei, mean_lysis_clst_ei, mean_storms_clst_seas_ei, mean_tracks_clst_seas_ei, mean_genesis_clst_seas_ei, mean_lysis_clst_seas_ei = calc_density_radius(save=True, outfile=outfile)
-
-#np.savez(outfile, mean_storms=mean_storms_clst_ei, mean_tracks=mean_tracks_clst_ei,mean_genesis=mean_genesis_clst_ei,mean_lysis=mean_lysis_clst_ei)
-
-#Mean density of EI clustered
-plt.figure() 
-overlays = [fig.map_overlay_contour(mean_storms_ei[::,::]*100,  grid,title=None,cb_label='% per 1000 km$^2$', scale=[15], linewidths=0.75)] 
-fig.map(mean_storms_clst_ei[::,::]*100,grid,m=n_hemisphere_new,overlays=overlays,mask=(oro[0,::3,::3] >= 1500),maskcolor="white",
-title="Storm Density",colors=colors_IMILAST, scale=scale_IMILAST, cmap=None, #cmap=cmap_IMILAST, #np.arange(2,12.1,1)
-cb_label='% per 1000 km$^2$',extend="both",
-save="Mean_Density_ERA5_Clust_" + formatter.format( Options["timthresh"]) + "_" + clustchar + "_minstorms_" + str(minstorms) + ".pdf")
+    #Output file for density
+    outfile="Density/Density_" + "_" + distchar + "_" +\
+            Options["str_result"]  + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"    ]) +\
+            "_Clust_" + clustchar + "_minstorms_" + str(minstorms) + "_solo.npz"
+    #mean_storms_clst_era5, mean_tracks_clst_era5 = calc_density()
+    mean_storms_solo_ei, mean_tracks_solo_ei, mean_genesis_solo_ei, mean_lysis_solo_ei, mean_storms_solo_seas_ei, mean_tracks_solo_seas_ei, mean_genesis_solo_seas_ei, mean_lysis_solo_seas_ei = calc_density_radius(save=True, outfile=outfile, connect=False)
+    
+ 
