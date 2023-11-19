@@ -353,23 +353,25 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             #Just select the points which are connected and calculate distances between the points for both tracks
             owndists, owntims, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons1[pntselect],lats1[pntselect],times1[pntselect])
             owndists2, owntims2, = compare_trks_np(lons2[pntselect2],lats2[pntselect2],times2[pntselect2],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
-            
-            maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
+            if(Options["distmeth"] == "AlongTracksDirect"):
+                #Just select the points which are connected and calculate distances between the points for both tracks
+                maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
+            elif(Options["distmeth"] == "AlongTracks"):
+                alongdists1, totaldist1 = dist_along_track_np(lons1[pntselect],lats1[pntselect])
+                alongdists2, totaldist2 = dist_along_track_np(lons2[pntselect2],lats2[pntselect2])
+                maxdist = (totaldist1 + totaldist2)/2.0
+                
+            #maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
             maxtime = (np.nanmax(np.abs(owntims)) + np.nanmax(np.abs(owntims2)))/2.0
-            #maxtime = (test1 + test2)/2.0*6.0
-
-            maxtimspacediff = ((maxdist/Options["lngthresh"])**2.0 + (maxtime/(Options["timlngthresh"]*6.0))**2.0)**(0.5)
             
             ratio = (maxtime/(Options["timlngthresh"]*6.0))/(maxdist/Options["lngthresh"])
             angle = np.arctan(ratio)
-            
-            
-            if(maxtimspacediff >=1.0):            
-                angles.extend([angle*180/np.pi])
+                
+            #if(maxtimspacediff >=1.0):            
+            #    angles.extend([angle*180/np.pi])
         else:
             maxdist = 0
             maxtime = 0
-            maxtimspacediff = 0
         
         if((maxtime > (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
             if(maxtime > (Options["timlngthresh"]*6.0)):
@@ -391,9 +393,6 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
 
             dr = (maxdist/Options["lngthresh"])
             dt = (maxtime/(Options["timlngthresh"]*6.0))
-        else:
-            anglesClust.extend([np.nan])
-
                 
         return conn, angle, dt, dr, str_contemp1, str_contemp2
 
