@@ -35,8 +35,8 @@ lngthresh = 1.5 #1.5 #2.0 #calc_Rossby_radius(lat=45)*2.0 # 1000.0
 timthreshs = np.arange(0.25,2.6,0.25)*24.0
 distthreshs = np.arange(0.5,1.51,0.1)
 
-timlength_threshs = np.arange(0.5,2.6,0.25)*24.0/6.0
-lngthreshs = np.arange(0.6,2.41,0.2)
+timlength_threshs = np.arange(1.0,3.1,0.25)*24.0/6.0
+lngthreshs = np.arange(0.5,2.61,0.25)
 
 #Just one threshold
 #timthreshs =  [30.0] #[1.0]
@@ -108,7 +108,7 @@ for lngthresh in lngthreshs:
         
 
         #Convert timthresh to td object 
-        timthresh_dt = td(hours=timthresh)
+        #timthresh_dt = td(hours=timthresh)
         #Options["timthresh"] = timthresh
         #Options["distthresh"] = distthresh
         Options["lngthresh"] = lngthresh
@@ -121,7 +121,7 @@ for lngthresh in lngthreshs:
         print("Distance threshold = " + str(distthresh))
         print("Time threshold = " + str(timthresh))
         print("Length threshold = " + str(lngthresh))
-        print("Length threshold = " + str(lngthresh))
+        print("TimeLength threshold = " + str(timlength_thresh))
         print("---------------------------------------------")
         
         #Convert timthresh to td object 
