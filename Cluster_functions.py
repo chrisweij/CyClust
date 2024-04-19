@@ -73,7 +73,7 @@ def dt_array(str_date):
 # General FUNCTIONS
 ###################################################
 
-def unnest(l):
+def unnest(l,level=1):
     '''
     Function to unnest list
     
@@ -83,8 +83,11 @@ def unnest(l):
     
     
     l_unnest = [item for sublist in l for item in sublist]
-    return l_unnest
-
+    
+    if(level == 1):
+        return l_unnest
+    else:
+        return unnest(l_unnest,level=level-1)
     
 def compute_M(data):
     cols = np.arange(data.size)
@@ -353,6 +356,7 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             #Just select the points which are connected and calculate distances between the points for both tracks
             owndists, owntims, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons1[pntselect],lats1[pntselect],times1[pntselect])
             owndists2, owntims2, = compare_trks_np(lons2[pntselect2],lats2[pntselect2],times2[pntselect2],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
+            
             if(Options["distmeth"] == "AlongTracksDirect"):
                 #Just select the points which are connected and calculate distances between the points for both tracks
                 maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
