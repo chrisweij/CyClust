@@ -377,8 +377,8 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             maxdist = 0
             maxtime = 0
         
-        if((maxtime > (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
-            if(maxtime > (Options["timlngthresh"]*6.0)):
+        if((maxtime >= (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
+            if(maxtime >= (Options["timlngthresh"]*6.0)):
                 conn += 2
 
             if(maxdist >= Options["lngthresh"]):
@@ -463,8 +463,8 @@ def connect_cyclones_test(lons1,lats1,times1,lons2,lats2,times2,
             maxtimspacediff = 0
         
         if(Options["connSpaceOrTime"] == True):
-            if((maxtime > (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
-                if(maxtime > (Options["timlngthresh"]*6.0)):
+            if((maxtime >= (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])): #(maxtime > (Options["timlngthresh"]*6.0))
+                if(maxtime >= (Options["timlngthresh"]*6.0)): #maxtime > (Options["timlngthresh"]*6.0)
                     conn += 2
                     
                 if(maxdist >= Options["lngthresh"]):
