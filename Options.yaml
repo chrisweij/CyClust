@@ -1,5 +1,5 @@
 # Input file
-"st_file" : "Tracks/Selected_tracks_2011_2012"
+"st_file" : "Tracks/Selected_tracks_2011_2012_DJF"
 #st_file : "Tracks/Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
 "nrskip" : 1 # How many lines to skip at top of line
 
