@@ -1,41 +1,25 @@
 # Input file
-#"st_file" : "Tracks/Selected_tracks_2011_2012"
-#"st_file" : "Tracks/Selected_tracks_EC-Earth31979to2013_0101to1231"
-st_file : "Tracks/Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
+"st_file" : "Tracks/Selected_tracks_2011_2012"
+#st_file : "Tracks/Selected_tracks_1979to2018_0101to1231_ei_Globe_Leonidas_with_stationary_all"
 "nrskip" : 1 # How many lines to skip at top of line
 
 #1. Distance criterium
-"distthresh" : 1.0 #1000.0,
+"distthresh" : 1.0 #In Rossby Radii 
 
 #2. Time criterium
-"timthresh" : 36.0
+"timthresh" : 36.0 #In hours
 
 #3. Length/Time criterium 
-"lngthresh" : 1.5 #1.5 #2.0 #calc_Rossby_radius(lat=45)*2.0 # 1000.0
-"timlngthresh" : 6
-"minPairs" : 24
+"lngthresh" : 1.5 #In Rossby Radii
+"timlngthresh" : 8 #Time steps
 
 # Options
-"timmeth" : "absolute"
-"timspace" : False  #Use a combined Time-Space criterium 
-"connTime" : False  #Connect on lengths
-"connSpaceTime" : False
-"connSpaceOrTime" : True
-"connPairs" : False,
-"excludeLong" : False #Exclude other type
-"distmeth" : "AlongTracksDirect" #"MaxDist" #"AlongTracks" "AlongTrackDirect"
+"distmeth" : "AlongTracksDirect" #"AlongTracksDirect" #"MaxDist" #"AlongTracks" "AlongTrackDirect"
 "frameworkSparse" : True
 
 # Output directory
-"outdir" : "Results/"
-
-# Minimum of nr. of storms in a "family"
-"minstorms" : 3
 "outdir" : "Clusters_output/"
-#"str_result" : "EI_2011_2012"
-"str_result" : "Global_Results_"
 
-
-# Statistics
-"checkBasin" : True
-"whichClusters" : "length" #"All" "length" or "nolength"
+# String used in file names of results
+#"str_result" : "Global_Results_EI_"
+"str_result" : "Winter_2011_2012_EI_"
