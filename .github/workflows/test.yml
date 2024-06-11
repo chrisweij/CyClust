@@ -1,0 +1,9 @@
+            - name: fast-pytest
+  # You may pin to the exact commit or the version.
+  # uses: paolorechia/fast-pytest-github-action@3d3b1cccb10a42cc45ccd9a4865e194178c3fa4d
+  uses: paolorechia/fast-pytest-github-action@v1.0
+  with:
+    # Args passed to pytest, provided as string
+    pytest_args: 
+    # Requirements file to install test dependencies
+    requirements_file: 
