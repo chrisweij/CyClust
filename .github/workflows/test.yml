@@ -20,5 +20,5 @@ jobs:
           id: pytest
           uses: paolorechia/fast-pytest-github-action@develop
           with:
-            pytest_args: 'Tests/test_output.py'
+            pytest_args: 'test_output.py'
             requirements_file: 'test_requirements.txt'
