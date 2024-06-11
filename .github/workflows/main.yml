@@ -1,4 +1,3 @@
-- name: fast-pytest
+name: fast-pytest
               
-  uses: paolorechia/fast-pytest-github-action@v1.0
-
+uses: paolorechia/fast-pytest-github-action@v1.0
