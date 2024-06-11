@@ -6,7 +6,7 @@ from datetime import datetime as dt, timedelta as td
 import numpy as np
 from numpy import loadtxt
 
-import sparse
+#import sparse
 from scipy.sparse import dok_matrix, save_npz
 import time
 from timeit import default_timer as timer
@@ -244,7 +244,7 @@ sorted_clusters_nolength = sorted(unnest(sorted_subclusters_nolength))
 # Save results
 ######################################################
 formatter =  "{:1.1f}"
-outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_timlength_" + formatter.format( Options["timlngthresh"]*6.0) + "_" + Options["distmeth"]
+outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_timlength_" + formatter.format( Options["timlngthresh"]*6.0) + "_" + Options["distmeth"] + "_corrected"
 
 # TO DO: Update to remove warning message
 np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object),str_connected = str_connected)
