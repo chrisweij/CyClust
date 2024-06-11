@@ -12,4 +12,4 @@
           uses: paolorechia/fast-pytest-github-action@develop
           with:
             pytest_args: 'Tests/test_output.py'
-            requirements_file: 'test_requirements.txt
+            requirements_file: 'test_requirements.txt'
