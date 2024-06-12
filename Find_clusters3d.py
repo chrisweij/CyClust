@@ -247,7 +247,12 @@ formatter =  "{:1.1f}"
 outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_timlength_" + formatter.format( Options["timlngthresh"]*6.0) + "_" + Options["distmeth"] + "_corrected"
 
 # TO DO: Update to remove warning message
-np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object), sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object), sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object),str_connected = str_connected)
+np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object),
+sorted_clusters_length=np.array(sorted_clusters_length,dtype=object),
+sorted_clusters_nolength = np.array(sorted_clusters_nolength,dtype=object), 
+sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object),
+sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object),
+str_connected = str_connected)
 
 # Save sparse arrays
 save_npz(outfile + "_dtTracks.npz",dtTracks.tocoo())
