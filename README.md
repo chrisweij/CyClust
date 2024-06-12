@@ -1,8 +1,12 @@
 # CyClust
 
-Cyclone clustering detection, based on  ... Additional analysis notebooks can be found at ...
+Cyclone clustering detection, detection algorithm used in Weijenborg and Spengler (2024). Additional analysis notebooks can be found at ...
 
 # Basic idea of algorithm
+
+The basis idea of the clustering algorithm is that it checks if multiple cyclone tracks follow a similar path, based on the 'cyclone families' described in Bjerknes and Solberg (1922). For details see Weijenborg and Spengler (2024). The algorith further divides cyclone clusters into two different types, a 'Bjerknes type' close to the cyclone families of Bjerkens and Solberg (1922) and a stagnant type. The former type detects cyclones that follow each other over a certain minimum distance, whereas the stagnant type includes cyclones which do not move much in space, but still have a proximity over time.
+
+All options/parameters can be set in Options.yaml, afterwards the script Find_clusters3d.py can be run. 
 
 # Desired input
 
@@ -36,6 +40,8 @@ _sorted_clusters_length_ and _sorted_clusters_nolength_ It further outputs a sim
 _ConnTracks_ NxN array with N the maximum number of str_id, with ConnTracks[i,j] containing a nonzero number if two cyclones are connected to each other (part of the same cluster). 
 
 # References
+Bjerknes, J. (1922). Life cycle of cyclones and the polar front theory of atmospheric circulation. Geofys. Publ., 3, 1-18.
 Hodges, K. I. (1995). Feature tracking on the unit sphere. _Monthly Weather Review_, 123(12), 3458-3465.\
 Murray, R. J., & Simmonds, I. (1991). A numerical scheme for tracking cyclone centres from digital data. _Australian meteorological magazine_, 39(3), 155-166.\
 Spensberger, C. (2024). Dynlib: A library of diagnostics, feature detection algorithms, plotting and convenience functions for dynamic meteorology (1.4.0). Zenodo.
+Weijenborg, C., & Spengler, T. (2024). Detection and global climatology of two types of cyclone clustering.
