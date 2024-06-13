@@ -197,13 +197,13 @@ print(timer() - starttime) # Time in seconds
 ############################
 # Step 3 Suborder clusters
 ############################
-sorted_subclusters_length = []
-sorted_subclusters_nolength = []
+sorted_subclusters_bjerknes = []
+sorted_subclusters_stagnant = []
 
 for cluster in sorted_clusters:
     #print(stridx)
-    subclusters_length = []
-    subclusters_nolength = []
+    subclusters_bjerknes = []
+    subclusters_stagnant = []
     
     for strid in cluster:
         
@@ -213,32 +213,32 @@ for cluster in sorted_clusters:
         
         #Length clusters
         if(Options["frameworkSparse"] == True):
-            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Length")
+            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Bjerknes")
         else:
-            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Length")
+            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Bjerknes")
 
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
-        subclusters_length.append(clusttemp)
+        subclusters_bjerknes.append(clusttemp)
         
         #Stationary clusters
         if(Options["frameworkSparse"] == True):
-            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="NoLength")
+            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Stagnant")
         else:
-            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="NoLength") 
+            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Stagnant") 
 
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
-        subclusters_nolength.append(clusttemp)
+        subclusters_stagnant.append(clusttemp)
         
     #Delete duplicates and sort on the first number in (sub)clusters:
-    unique_subclusters = [list(x) for x in set(tuple(x) for x in subclusters_length)]
-    sorted_subclusters_length.append(sorted(unique_subclusters))
+    unique_subclusters = [list(x) for x in set(tuple(x) for x in subclusters_bjerknes)]
+    sorted_subclusters_bjerknes.append(sorted(unique_subclusters))
     
     #Delete duplicates and sort on the first number in (sub)clusters:
-    unique_subclusters = [list(x) for x in set(tuple(x) for x in subclusters_nolength)]
-    sorted_subclusters_nolength.append(sorted(unique_subclusters))
+    unique_subclusters = [list(x) for x in set(tuple(x) for x in subclusters_stagnant)]
+    sorted_subclusters_stagnant.append(sorted(unique_subclusters))
     
-sorted_clusters_length = sorted(unnest(sorted_subclusters_length))
-sorted_clusters_nolength = sorted(unnest(sorted_subclusters_nolength))
+sorted_clusters_bjerknes = sorted(unnest(sorted_subclusters_bjerknes))
+sorted_clusters_stagnant = sorted(unnest(sorted_subclusters_stagnant))
 
 ######################################################
 # Save results
@@ -248,10 +248,10 @@ outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options
 
 # TO DO: Update to remove warning message
 np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object),
-sorted_clusters_length=np.array(sorted_clusters_length,dtype=object),
-sorted_clusters_nolength = np.array(sorted_clusters_nolength,dtype=object), 
-sorted_subclusters_length = np.array(sorted_subclusters_length,dtype=object),
-sorted_subclusters_nolength = np.array(sorted_subclusters_nolength,dtype=object),
+sorted_clusters_bjerknes=np.array(sorted_clusters_bjerknes,dtype=object),
+sorted_clusters_stagnant = np.array(sorted_clusters_stagnant,dtype=object), 
+sorted_subclusters_bjerknes = np.array(sorted_subclusters_bjerknes,dtype=object),
+sorted_subclusters_stagnant = np.array(sorted_subclusters_stagnant,dtype=object),
 str_connected = str_connected)
 
 # Save sparse arrays

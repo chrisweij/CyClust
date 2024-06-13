@@ -415,7 +415,7 @@ def find_cluster_type3(cluster,connTracks,contype="All"):
             strmstemp = np.where(conntemp > 0)[0]  #+ stridx
             #typetemp = conntemp[conntemp > 0] 
             cluster = np.append(cluster,np.array(strmstemp,dtype=int))
-        elif(contype == "Length" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
+        elif(contype == "Bjerknes" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
             strmstemp = np.where((conntemp == 1.0) | (conntemp == 3.0))[0]  #+ stridx
             #typetemp = conntemp[conntemp > 0] 
             cluster = np.append(cluster,np.array(strmstemp,dtype=int))
@@ -423,7 +423,7 @@ def find_cluster_type3(cluster,connTracks,contype="All"):
             strmstemp = np.where(conntemp >= 2.0)[0]  #+ stridx
             #typetemp = conntemp[conntemp > 0] 
             cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
-        if(contype == "NoLength" and np.nansum((conntemp == 2.0)) > 0):
+        if(contype == "Stagnant" and np.nansum((conntemp == 2.0)) > 0):
             strmstemp = np.where(conntemp == 2.0)[0]  #+ stridx
             #typetemp = conntemp[conntemp > 0] 
             cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
@@ -436,15 +436,15 @@ def find_cluster_type3(cluster,connTracks,contype="All"):
     if(len(cluster) == len(cluster_old)):
         if(contype == "All"):
             connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] != 0])]
-        elif(contype == "Length"):
+        elif(contype == "Bjerknes"):
             connTypes = [x for strm in cluster for x in list(connTracks[strm,:][(connTracks[strm,:] == 1.0) | (connTracks[strm,:] == 3.0)])]
         elif(contype == "Time"):
             connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] >= 2.0])]
-        elif(contype == "NoLength"):
+        elif(contype == "Stagnant"):
             connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] == 2.0])]
         else:
             connTypes = []
-            
+        #TO DO: Check if these names have to be changed too
         if(len(cluster) == 1):
             clusterType = "None"
         elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
@@ -477,13 +477,13 @@ def find_cluster_type_dokm(cluster,connTracks,contype="All"):
                 strmstemp = np.where(conntemp > 0)[0]  #+ stridx
                 #typetemp = conntemp[conntemp > 0] 
                 cluster = np.append(cluster,nonzero)
-            elif(contype == "Length" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
+            elif(contype == "Bjerknes" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
                 strmstemp = nonzero[np.where((conntemp == 1.0) | (conntemp == 3.0))[0]]  #+ stridx
                 cluster = np.append(cluster,np.array(strmstemp,dtype=int))
             elif(contype == "Time" and np.nansum(conntemp >= 2.0) > 0):
                 strmstemp = nonzero[np.where(conntemp >= 2.0)[0]]  
                 cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
-            if(contype == "NoLength" and np.nansum((conntemp == 2.0)) > 0):
+            if(contype == "Stagnant" and np.nansum((conntemp == 2.0)) > 0):
                 strmstemp = nonzero[np.where(conntemp == 2.0)[0]]
                 cluster = np.append(cluster,np.array(strmstemp,dtype=int))     
             

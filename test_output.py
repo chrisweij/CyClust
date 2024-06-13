@@ -18,5 +18,5 @@ def test_cluster():
 
     #Assert if they are the same
     assert all(Results["sorted_clusters"] == Results_test["sorted_clusters"])
-    assert all(Results["sorted_subclusters_length"] == Results_test["sorted_subclusters_length"])
-    assert all(Results["sorted_subclusters_nolength"] == Results_test["sorted_subclusters_nolength"])
+    assert all(Results["sorted_subclusters_bjerknes"] == Results_test["sorted_subclusters_length"])
+    assert all(Results["sorted_subclusters_stagnant"] == Results_test["sorted_subclusters_nolength"])
