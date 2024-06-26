@@ -11,7 +11,7 @@ from scipy.sparse import dok_matrix, save_npz
 import time
 from timeit import default_timer as timer
 import yaml
-from Cluster_functions import read_file, read_file_clim, dt_array
+from Cluster_functions import *
 
 with open("Options.yaml") as f:
     Options = yaml.safe_load(f)
@@ -30,23 +30,6 @@ str_connected   = np.zeros(str_dt.shape)
 #str_id = str_id - np.nanmin(str_id) + 1
 
 #########################
-# Define result arrays
-#########################
-if(Options["frameworkSparse"] == False):
-    connTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
-    angleTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
-    drTracks  = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
-    dtTracks = np.zeros([np.nanmax(str_id),np.nanmax(str_id)])
-else:
-    connTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
-    angleTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
-    drTracks  = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
-    dtTracks = dok_matrix((np.nanmax(str_id),np.nanmax(str_id)))
-
-from Cluster_functions import *
-#calc_Rossby_radius, compare_trks_np, find_cluster, find_cluster_type_dokm, unnest, get_indices_sparse, find_cluster_type, find_cluster_type3, connect_cyclones
-
-#########################
 # Get indices of storms 
 # so that ids_storms[id] gives the ids in the arrays
 # str_id, str_lon,.. belonging to that specific storm
@@ -54,6 +37,21 @@ from Cluster_functions import *
 uniq_ids = np.unique(str_id)
 ids_storms = get_indices_sparse(str_id)
 nrstorms = len(uniq_ids)
+
+#########################
+# Define result arrays
+#########################
+if(Options["frameworkSparse"] == False):
+    connTracks = np.zeros([nrstorms,nrstorms])
+    angleTracks = np.zeros([nrstorms,nrstorms])
+    drTracks  = np.zeros([nrstorms,nrstorms])
+    dtTracks = np.zeros([nrstorms,nrstorms])
+else:
+    connTracks = dok_matrix((nrstorms,nrstorms))
+    angleTracks = dok_matrix((nrstorms,nrstorms))
+    connectTracks = csr_matrix((nrstorms,nrstorms))
+    drTracks  = dok_matrix((nrstorms,nrstorms))
+    dtTracks = dok_matrix((nrstorms,nrstorms))
 
 #########################
 # Preprocess storm tracks
@@ -131,8 +129,8 @@ for strm1 in range(nrstorms):
     times1 = str_dt[selidxs1]
     
     #Only compare with storms which are close enought im time compared to strm1 
-    diffdt1  = firstdt - lastdt[strm1]
-    diffdt2  = firstdt[strm1] - lastdt
+    diffdt1  = firstdt - np.array(lastdt[strm1])
+    diffdt2  = np.array(firstdt[strm1]) - lastdt
     
     #To do: Check if this can be speed up
     strm2idxs = np.where((np.arange(nrstorms) > strm1) & ((diffdt1 <= timthresh_dt) & (diffdt2 <= timthresh_dt)) & (hemstorms == hemstorms[strm1]))[0]
