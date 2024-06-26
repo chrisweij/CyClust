@@ -11,7 +11,7 @@
 
 #3. Length/Time criterium 
 "lngthresh" : 1.5 #In Rossby Radii
-"timlngthresh" : 8 #Time steps
+"timlngthresh" : 48.0 #8 #8 #Time steps
 
 # Options
 "distmeth" : "AlongTracksDirect" #"AlongTracksDirect" #"MaxDist" #"AlongTracks" "AlongTrackDirect"

@@ -24,10 +24,10 @@ Alternatively numpy arrays of length n can directly be used or read in for each 
 # Input parameters
 
 #Thresholds used in algorithm
-- distthresh = 1.0 #1. Distance criterium
-- timthresh = 36.0 #2. Time criterium, in hours
-- lngthresh = 1.5 #3. Length overlap criterium (in Rossby Radius)
-- timlngthresh = 6 #4. Time overlap criterium (in time steps)
+- distthresh = 1.0 #1. Distance criterium (in Rossby Radii)
+- timthresh = 36.0 #2. Time criterium (in hours)
+- lngthresh = 1.5 #3. Length overlap criterium (in Rossby Radii)
+- timlngthresh = 48.0 #4. Time overlap criterium (in hours)
 
 frameworkSparse = True #If True, uses sparse matrices to save results
 
