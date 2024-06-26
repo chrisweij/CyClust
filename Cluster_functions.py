@@ -368,7 +368,7 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             #maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
             maxtime = (np.nanmax(np.abs(owntims)) + np.nanmax(np.abs(owntims2)))/2.0
             
-            ratio = (maxtime/(Options["timlngthresh"]*6.0))/(maxdist/Options["lngthresh"])
+            ratio = (maxtime/(Options["timlngthresh"]))/(maxdist/Options["lngthresh"])
             angle = np.arctan(ratio)
                 
             #if(maxtimspacediff >=1.0):            
@@ -377,8 +377,8 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             maxdist = 0
             maxtime = 0
         
-        if((maxtime >= (Options["timlngthresh"]*6.0)) or (maxdist >= Options["lngthresh"])):
-            if(maxtime >= (Options["timlngthresh"]*6.0)):
+        if((maxtime >= (Options["timlngthresh"])) or (maxdist >= Options["lngthresh"])):
+            if(maxtime >= (Options["timlngthresh"])):
                 conn += 2
 
             if(maxdist >= Options["lngthresh"]):
@@ -393,10 +393,10 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             if(angle == 0):
                 print("Zero angle")
                 print((maxdist/Options["lngthresh"]))
-                print((maxtime/(Options["timlngthresh"]*6.0)))
+                print((maxtime/(Options["timlngthresh"])))
 
             dr = (maxdist/Options["lngthresh"])
-            dt = (maxtime/(Options["timlngthresh"]*6.0))
+            dt = (maxtime/(Options["timlngthresh"]))
                 
         return conn, angle, dt, dr, str_contemp1, str_contemp2
 

@@ -242,7 +242,7 @@ sorted_clusters_stagnant = sorted(unnest(sorted_subclusters_stagnant))
 # Save results
 ######################################################
 formatter =  "{:1.1f}"
-outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_timlength_" + formatter.format( Options["timlngthresh"]*6.0) + "_" + Options["distmeth"] + "_corrected"
+outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) + "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) + "_timlength_" + formatter.format( Options["timlngthresh"]) + "_" + Options["distmeth"] + "_corrected"
 
 # TO DO: Update to remove warning message
 np.savez(outfile, sorted_clusters = np.array(sorted_clusters,dtype=object),
