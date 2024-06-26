@@ -21,7 +21,7 @@ def test_cluster():
     formatter =  "{:1.1f}"
     outfile = Options["outdir"] +  Options["str_result"] + formatter.format( Options["distthresh"]) +\
     "_tim_" + formatter.format( Options["timthresh"]) + "_length_" + formatter.format( Options["lngthresh"]) +\
-    "_timlength_" + formatter.format( Options["timlngthresh"]*6.0) + "_" + Options["distmeth"] + "_corrected.npz"
+    "_timlength_" + formatter.format( Options["timlngthresh"]) + "_" + Options["distmeth"] + "_corrected.npz"
 
     Results_test = np.load(outfile,allow_pickle=True)    
 
