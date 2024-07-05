@@ -16,6 +16,100 @@ clusterTypes2 = []
 angleTypes = []
 
 
+def great_circle(lat1, long1, lat2, long2,dist="kilometers"):
+
+    # Convert latitude and longitude to 
+    # spherical coordinates in radians.
+    degrees_to_radians = math.pi/180.0
+        
+    # phi = 90 - latitude
+    phi1 = (90.0 - lat1)*degrees_to_radians
+    phi2 = (90.0 - lat2)*degrees_to_radians
+        
+    # theta = longitude
+    theta1 = long1*degrees_to_radians
+    theta2 = long2*degrees_to_radians
+        
+    # Compute spherical distance from spherical coordinates.
+        
+    # For two locations in spherical coordinates 
+    # (1, theta, phi) and (1, theta, phi)
+    # cosine( arc length ) = 
+    #    sin phi sin phi' cos(theta-theta') + cos phi cos phi'
+    # distance = rho * arc length
+    
+    cos = (math.sin(phi1)*math.sin(phi2)*math.cos(theta1 - theta2) + 
+           math.cos(phi1)*math.cos(phi2))
+    #print(cos)
+    if(cos > 1):
+       cos = 1.0
+    arc = math.acos( cos )
+
+    # Calculate distance in meters
+    if (dist == "kilometers"): 
+       dist = arc*6378.16
+    elif(dist == "meters"):
+       dist = arc*6378.16*1000.0
+
+    # Remember to multiply arc by the radius of the earth 
+    # in your favorite set of units to get length.
+    return dist
+    
+#Compute the spatial and distance between two tracks
+def compare_trks(x_1,y_1,t_1,x_2,y_2,t_2):
+	len1 = len(x_1)
+	len2 = len(x_2)
+
+	dist = np.empty([len1,len2])*np.nan
+	timdiff = np.empty([len1,len2])*np.nan
+
+	for idx1 in range(len1):
+		for idx2 in range(len2): #range(len2): #
+			gctemp = great_circle(y_1[idx1],x_1[idx1],y_2[idx2],x_2[idx2])
+			avelat = (y_2[idx2] + y_1[idx1])*0.5
+			corrfac = np.abs(calc_Rossby_radius(lat=avelat)) #/calc_Rossby_radius(lat=45))
+			dist[idx1,idx2] = gctemp/corrfac
+			dttemp = ((t_1[idx1] - t_2[idx2]).total_seconds())/3600
+			timdiff[idx1,idx2] = dttemp
+	return dist, timdiff
+
+#Compare with local median threshold
+def compare_trks_median(x_1,y_1,t_1,x_2,y_2,t_2,median):
+	len1 = len(x_1)
+	len2 = len(x_2)
+
+	lats = np.arange(90,-90.1,-1.5)
+	lons = np.arange(-180,180,1.5)
+
+	dist = np.zeros([len1,len2])
+	timdiff = np.zeros([len1,len2])
+
+	for idx1 in range(len1):
+		for idx2 in range(idx1,len2):
+			avelat = (y_2[idx2] + y_1[idx1])*0.5
+			diff2 = (360 - np.nanmax([x_2[idx2],x_1[idx1]]) + np.nanmin([x_2[idx2],x_1[idx1]]))%360
+
+			if( np.abs(x_2[idx2] - x_1[idx1]) < 180):
+				#print("Option 1:")
+				avelon = (x_2[idx2] + x_1[idx1])*0.5  
+			else:
+				#print("Option 2:")
+				avelon = (np.nanmax([x_2[idx2],x_1[idx1]]) + diff2/2.0)%360
+
+
+			gctemp = great_circle(y_1[idx1],x_1[idx1],y_2[idx2],x_2[idx2])
+			corrfac = np.abs(calc_Rossby_radius(lat=avelat)) #/calc_Rossby_radius(lat=45))
+			dist[idx1,idx2] = gctemp/corrfac
+			dttemp = ((t_1[idx1] - t_2[idx2]).total_seconds())/3600	
+			
+			#Get closest grid point
+			if (avelon > 180): 
+				avelon -= 360.0
+			latidx = np.argmin(np.abs(lats - avelat))
+			lonidx = np.argmin(np.abs(lons - avelon))
+
+			timdiff[idx1,idx2] = dttemp/(median[latidx,lonidx]*6.0)
+	return dist, timdiff
 
 # TO DO: Add description
 # TO DO: Clean up of code (not all options are necessary anymore)
