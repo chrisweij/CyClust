@@ -6,7 +6,7 @@ Cyclone clustering detection, detection algorithm used in Weijenborg and Spengle
 
 The basis idea of the clustering algorithm is that it checks if multiple cyclone tracks follow a similar path, based on the 'cyclone families' described in Bjerknes and Solberg (1922). For details see Weijenborg and Spengler (2024). The algorith further divides cyclone clusters into two different types, a 'Bjerknes type' close to the cyclone families of Bjerkens and Solberg (1922) and a stagnant type. The former type detects cyclones that follow each other over a certain minimum distance, whereas the stagnant type includes cyclones which do not move much in space, but still have a proximity over time.
 
-All options/parameters can be set in Options.yaml, afterwards the script Find_clusters3d.py can be run. 
+All options/parameters can be set in Options.yaml, afterwards the script Find_clusters3d.py can be run. This file reads in the parameters set in the Options.yaml file, and saves the output clustered cyclones as a npz file. Standard it reads in "Tracks/Selected_tracks_2011_2012_DJF", which includes cyclone tracks of the 2011-2012 winter. 
 
 # Desired input
 
