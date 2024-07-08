@@ -41,17 +41,11 @@ nrstorms = len(uniq_ids)
 #########################
 # Define result arrays
 #########################
-if(Options["frameworkSparse"] == False):
-    connTracks = np.zeros([nrstorms,nrstorms])
-    angleTracks = np.zeros([nrstorms,nrstorms])
-    drTracks  = np.zeros([nrstorms,nrstorms])
-    dtTracks = np.zeros([nrstorms,nrstorms])
-else:
-    connTracks = dok_matrix((nrstorms,nrstorms))
-    angleTracks = dok_matrix((nrstorms,nrstorms))
-    connectTracks = csr_matrix((nrstorms,nrstorms))
-    drTracks  = dok_matrix((nrstorms,nrstorms))
-    dtTracks = dok_matrix((nrstorms,nrstorms))
+connTracks = dok_matrix((nrstorms,nrstorms))
+angleTracks = dok_matrix((nrstorms,nrstorms))
+connectTracks = csr_matrix((nrstorms,nrstorms))
+drTracks  = dok_matrix((nrstorms,nrstorms))
+dtTracks = dok_matrix((nrstorms,nrstorms))
 
 #########################
 # Preprocess storm tracks
@@ -146,10 +140,6 @@ for strm1 in range(nrstorms):
         conn, angle, dt, dr, strConn1, strConn2  =\
             connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,Options)
         
-        #if conn != 0: 
-        #    print(strConn1)
-        #    print(strConn2)
-        
         #Save Results in arrays
         connTracks[strm2,strm1] = conn
         connTracks[strm1,strm2] = conn
@@ -173,11 +163,7 @@ maxlength = 1
 
 for stridx in range(nrstorms):
     #print(stridx)
-    if(Options["frameworkSparse"] == True):
-        clusttemp = find_cluster_type_dokm([stridx],connTracks)        
-    else:
-        clusttemp, connTypes, clusterType = find_cluster_type([stridx],connTracks) 
-    #clusttemp2, connTypes2, anglesClust2, clusterType2, angleType = find_cluster_type2([stridx],connTracks, angleTracks)
+    clusttemp = find_cluster_type_dokm([stridx],connTracks)        
     
     if(len(clusttemp) > maxlength):
         maxlength = len(clusttemp)
@@ -210,19 +196,13 @@ for cluster in sorted_clusters:
         #np.where(uniq_ids == strid)[0]
         
         #Length clusters
-        if(Options["frameworkSparse"] == True):
-            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Bjerknes")
-        else:
-            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Bjerknes")
+        clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Bjerknes")
 
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
         subclusters_bjerknes.append(clusttemp)
         
         #Stationary clusters
-        if(Options["frameworkSparse"] == True):
-            clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Stagnant")
-        else:
-            clusttemp, connTypes, clusterType = find_cluster_type3(stridx,connTracks,contype="Stagnant") 
+        clusttemp = find_cluster_type_dokm(stridx,connTracks,contype="Stagnant")
 
         clusttemp = [uniq_ids[x] for x in clusttemp] #Convert indices to storm id
         subclusters_stagnant.append(clusttemp)

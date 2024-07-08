@@ -16,6 +16,22 @@ clusterTypes2 = []
 angleTypes = []
 
 
+#Symmetrize matrix
+def symmetrize(a):
+    """
+    Return a symmetrized version of NumPy array a.
+
+    Values 0 are replaced by the array value at the symmetric
+    position (with respect to the diagonal), i.e. if a_ij = 0,
+    then the returned array a' is such that a'_ij = a_ji.
+
+    Diagonal values are left untouched.
+
+    a -- square NumPy array, such that a_ij = 0 or a_ji = 0, 
+    for i != j.
+    """
+    return a + a.T - numpy.diag(a.diagonal())
+    
 def great_circle(lat1, long1, lat2, long2,dist="kilometers"):
 
     # Convert latitude and longitude to 
@@ -392,3 +408,60 @@ def find_cluster_type2(cluster,connTracks,angleTracks):
     else:
         #connTypes.extend(list(typetemp))
         return find_cluster_type2(cluster,connTracks,angleTracks)
+
+
+#Recursive function to find uniquely connected cluster of storms + Type of cluster
+def find_cluster_type3(cluster,connTracks,contype="All"):
+    #print("CLustering analysis for the following storms:")
+    #print(cluster)
+    cluster_old = cluster
+
+    #Loop over storms to find connected storms
+    for stridx in cluster: 
+        conntemp = connTracks[stridx,::] #-1
+        if(contype == "All" and np.nansum(conntemp) > 0):
+            strmstemp = np.where(conntemp > 0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+        elif(contype == "Bjerknes" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
+            strmstemp = np.where((conntemp == 1.0) | (conntemp == 3.0))[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
+        elif(contype == "Time" and np.nansum(conntemp >= 2.0) > 0):
+            strmstemp = np.where(conntemp >= 2.0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
+        if(contype == "Stagnant" and np.nansum((conntemp == 2.0)) > 0):
+            strmstemp = np.where(conntemp == 2.0)[0]  #+ stridx
+            #typetemp = conntemp[conntemp > 0] 
+            cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
+            
+    #Remove duplicate storms
+    cluster = np.unique(cluster)
+
+    #Check if all storms are counted??
+    if(len(cluster) == len(cluster_old)):
+        if(contype == "All"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] != 0])]
+        elif(contype == "Bjerknes"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][(connTracks[strm,:] == 1.0) | (connTracks[strm,:] == 3.0)])]
+        elif(contype == "Time"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] >= 2.0])]
+        elif(contype == "Stagnant"):
+            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] == 2.0])]
+        else:
+            connTypes = []
+        #TO DO: Check if these names have to be changed too
+        if(len(cluster) == 1):
+            clusterType = "None"
+        elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Time"
+        elif(all((x == 1.0 or x == 3.0) for x in connTypes)):
+            clusterType = "Length"
+        else:
+            clusterType = "Mixed"
+        
+        return cluster_old, connTypes, clusterType
+    else:
+        #connTypes.extend(list(typetemp))
+        return find_cluster_type3(cluster,connTracks,contype=contype)

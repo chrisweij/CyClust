@@ -81,7 +81,9 @@ def unnest(l,level=1):
         return l_unnest
     else:
         return unnest(l_unnest,level=level-1)
-    
+
+#Functions to get indices in a large vector
+#Code from: https://stackoverflow.com/questions/33281957/faster-alternative-to-numpy-where    
 def compute_M(data):
     cols = np.arange(data.size)
     return csr_matrix((cols, (data.ravel(), cols)),
@@ -91,32 +93,18 @@ def get_indices_sparse(data):
     M = compute_M(data)
     return [np.unravel_index(row.data, data.shape) for row in M]
 
-#Symmetrize matrix
-def symmetrize(a):
-    """
-    Return a symmetrized version of NumPy array a.
-
-    Values 0 are replaced by the array value at the symmetric
-    position (with respect to the diagonal), i.e. if a_ij = 0,
-    then the returned array a' is such that a'_ij = a_ji.
-
-    Diagonal values are left untouched.
-
-    a -- square NumPy array, such that a_ij = 0 or a_ji = 0, 
-    for i != j.
-    """
-    return a + a.T - numpy.diag(a.diagonal())
-
 ##################################################
 # FUNCTIONS TO COMPARE DISTANCES
 ###################################################
 def calc_Rossby_radius(lat=45,N=1.3e-2,H=10):
 	return N*H/(2*7.29*10**-5*np.sin(lat*np.pi/180))
 
-#https://gist.github.com/nickjevershed/6480846
-
-#Similar as previous function, but using numpy instead of math
-def great_circle_np(lat1, long1, lat2, long2,dist="kilometers"):
+#From https://gist.github.com/nickjevershed/6480846
+def great_circle(lat1, long1, lat2, long2,dist="kilometers"):
+    '''
+    Calculates great circle distance between lon1,lat1 and lat2,lon2
+    
+    '''
 
     # Convert latitude and longitude to 
     # spherical coordinates in radians.
@@ -153,7 +141,7 @@ def great_circle_np(lat1, long1, lat2, long2,dist="kilometers"):
     return dist
 
 #Compute the spatial and distance between two tracks
-def compare_trks_np(x_1,y_1,t_1,x_2,y_2,t_2,timthresh=None):
+def compare_trks(x_1,y_1,t_1,x_2,y_2,t_2,timthresh=None):
     len1 = len(x_1)
     len2 = len(x_2)
 
@@ -166,7 +154,7 @@ def compare_trks_np(x_1,y_1,t_1,x_2,y_2,t_2,timthresh=None):
 
     avelat = (lt1 + lt2)*0.5
     corrfac = np.abs(calc_Rossby_radius(lat=avelat)) #/calc_Rossby_radius(lat=45))
-    dist = great_circle_np(lt1,ln1,lt2,ln2)/corrfac
+    dist = great_circle(lt1,ln1,lt2,ln2)/corrfac
 
 
     for idx1 in range(len1):
@@ -187,7 +175,7 @@ def compare_trks_np(x_1,y_1,t_1,x_2,y_2,t_2,timthresh=None):
     else:
         return dist, timdiff, timspace_diff
     
-def dist_along_track_np(x,y):
+def dist_along_track(x,y):
     lentrk = len(x)
     
     if(lentrk <= 1):
@@ -195,7 +183,7 @@ def dist_along_track_np(x,y):
     else:
         avelat = (y[1:] + y[0:(lentrk-1)])*0.5
         corrfac = np.abs(calc_Rossby_radius(lat=avelat)) 
-        dist = great_circle_np(y[1:],x[1:],y[0:(lentrk-1)],x[0:(lentrk-1)])/corrfac
+        dist = great_circle(y[1:],x[1:],y[0:(lentrk-1)],x[0:(lentrk-1)])/corrfac
         
     totaldist = np.nansum(dist)
     
@@ -217,6 +205,10 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
         Options, 
         
         In Options:
+	distthresh = 1.0 #1. Distance criterium (in Rossby Radii)
+        timthresh = 36.0 #2. Time criterium (in hours)
+        lngthresh = 1.5 #3. Length overlap criterium (in Rossby Radii)
+        timlngthresh = 48.0 #4. Time overlap criterium (in hours)
         '''
     
         conn = 0
@@ -226,7 +218,7 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
         str_contemp1 = np.zeros(len(lons1))
         str_contemp2 = np.zeros(len(lons2))
     
-        dists, timdiffs, timspacediff  = compare_trks_np(lons2,lats2,times2,lons1,lats1,times1,Options["timthresh"]) #,timthresh timspacediff,
+        dists, timdiffs, timspacediff  = compare_trks(lons2,lats2,times2,lons1,lats1,times1,Options["timthresh"]) 
 
         ###############################################################################
         # Step 1: Selection of points over which a particular storm tracks are connected
@@ -242,25 +234,22 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
         pntselect2 = np.nanmax(point_check,axis=1) #*Rossby_45
         test2 = np.nansum(pntselect2)
 
-        nrPairs = np.nansum((np.abs(timdiffs) <= Options["timthresh"]) & (dists <= Options["distthresh"]))
-
         ###############################################################################
         # Step 2: Calculate distance and time over which storm tracks are connected
         # Only makes sense if at least two points are connected along each track
         ###############################################################################
         if((test1 >=2) & (test2 >= 2)):
-            pntdists, pnttimdiffs, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
 
             #Just select the points which are connected and calculate distances between the points for both tracks
-            owndists, owntims, = compare_trks_np(lons1[pntselect],lats1[pntselect],times1[pntselect],lons1[pntselect],lats1[pntselect],times1[pntselect])
-            owndists2, owntims2, = compare_trks_np(lons2[pntselect2],lats2[pntselect2],times2[pntselect2],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
+            owndists, owntims, = compare_trks(lons1[pntselect],lats1[pntselect],times1[pntselect],lons1[pntselect],lats1[pntselect],times1[pntselect])
+            owndists2, owntims2, = compare_trks(lons2[pntselect2],lats2[pntselect2],times2[pntselect2],lons2[pntselect2],lats2[pntselect2],times2[pntselect2])
             
             if(Options["distmeth"] == "AlongTracksDirect"):
                 #Just select the points which are connected and calculate distances between the points for both tracks
                 maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
             elif(Options["distmeth"] == "AlongTracks"):
-                alongdists1, totaldist1 = dist_along_track_np(lons1[pntselect],lats1[pntselect])
-                alongdists2, totaldist2 = dist_along_track_np(lons2[pntselect2],lats2[pntselect2])
+                alongdists1, totaldist1 = dist_along_track(lons1[pntselect],lats1[pntselect])
+                alongdists2, totaldist2 = dist_along_track(lons2[pntselect2],lats2[pntselect2])
                 maxdist = (totaldist1 + totaldist2)/2.0
                 
             #maxdist = (np.nanmax(owndists) + np.nanmax(owndists2))/2.0
@@ -293,69 +282,10 @@ def connect_cyclones(lons1,lats1,times1,lons2,lats2,times2,
             dt = (maxtime/(Options["timlngthresh"]))
                 
         return conn, angle, dt, dr, str_contemp1, str_contemp2
-
-#Recursive function to find uniquely connected cluster of storms + Type of cluster
-def find_cluster_type3(cluster,connTracks,contype="All"):
-    #print("CLustering analysis for the following storms:")
-    #print(cluster)
-    cluster_old = cluster
-
-    #Loop over storms to find connected storms
-    for stridx in cluster: 
-        conntemp = connTracks[stridx,::] #-1
-        if(contype == "All" and np.nansum(conntemp) > 0):
-            strmstemp = np.where(conntemp > 0)[0]  #+ stridx
-            #typetemp = conntemp[conntemp > 0] 
-            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
-        elif(contype == "Bjerknes" and np.nansum((conntemp == 1.0) | (conntemp == 3.0)) > 0):
-            strmstemp = np.where((conntemp == 1.0) | (conntemp == 3.0))[0]  #+ stridx
-            #typetemp = conntemp[conntemp > 0] 
-            cluster = np.append(cluster,np.array(strmstemp,dtype=int))
-        elif(contype == "Time" and np.nansum(conntemp >= 2.0) > 0):
-            strmstemp = np.where(conntemp >= 2.0)[0]  #+ stridx
-            #typetemp = conntemp[conntemp > 0] 
-            cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
-        if(contype == "Stagnant" and np.nansum((conntemp == 2.0)) > 0):
-            strmstemp = np.where(conntemp == 2.0)[0]  #+ stridx
-            #typetemp = conntemp[conntemp > 0] 
-            cluster = np.append(cluster,np.array(strmstemp,dtype=int))    
-            
-            
-    #Remove duplicate storms
-    cluster = np.unique(cluster)
-
-    #Check if all storms are counted??
-    if(len(cluster) == len(cluster_old)):
-        if(contype == "All"):
-            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] != 0])]
-        elif(contype == "Bjerknes"):
-            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][(connTracks[strm,:] == 1.0) | (connTracks[strm,:] == 3.0)])]
-        elif(contype == "Time"):
-            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] >= 2.0])]
-        elif(contype == "Stagnant"):
-            connTypes = [x for strm in cluster for x in list(connTracks[strm,:][connTracks[strm,:] == 2.0])]
-        else:
-            connTypes = []
-        #TO DO: Check if these names have to be changed too
-        if(len(cluster) == 1):
-            clusterType = "None"
-        elif(all((x == 2.0 or x == 3.0) for x in connTypes)):
-            clusterType = "Time"
-        elif(all((x == 1.0 or x == 3.0) for x in connTypes)):
-            clusterType = "Length"
-        else:
-            clusterType = "Mixed"
-        
-        return cluster_old, connTypes, clusterType
-    else:
-        #connTypes.extend(list(typetemp))
-        return find_cluster_type3(cluster,connTracks,contype=contype)
-    
     
 #Recursive function to find uniquely connected cluster of storms + Type of cluster
 def find_cluster_type_dokm(cluster,connTracks,contype="All"):
     #print("CLustering analysis for the following storms:")
-    #print(cluster)
     cluster_old = cluster
 
     #Loop over storms to find connected storms
