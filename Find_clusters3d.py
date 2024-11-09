@@ -221,16 +221,16 @@ sorted_clusters_stagnant = sorted(unnest(sorted_subclusters_stagnant))
 ######################################################
 # Detect primary/secondary cyclones 
 ######################################################
-first_time_conn = [None] * nrstorms
-
+timsorted_clusters = []
+'''
 # First connected time step of storms
 for strm in range(nrstorms):
-    tmp_time = str_dt[ids_storms[strm+1]]
-    tmp_conn = str_connected[ids_storms[strm+1]]
+    tmp_time = str_dt[ids_storms[uniq_ids[strm]]]
+    tmp_conn = str_connected[ids_storms[uniq_ids[strm]]]
     first_time[strm] = tmp_time[0]
     if(np.any(tmp_conn >0)):
         first_time_conn[strm] = tmp_time[tmp_conn>0][0]
-
+'''
 # All clusters
 for cluster in sorted_clusters:
     if(len(cluster) == 1):
@@ -238,11 +238,22 @@ for cluster in sorted_clusters:
     elif(len(cluster)>=2):
         
         cluster = np.array(cluster)
+
+        first_time = [None] * len(cluster)
+        first_time_conn = [None] * len(cluster)
+        for idx in range(len(cluster)):
+            strm = cluster[idx]
+            tmp_time = str_dt[ids_storms[strm]]
+            tmp_conn = str_connected[ids_storms[strm]]
+            first_time[idx] = tmp_time[0]
+            #if(np.any(tmp_conn >0)):
+            first_time_conn[idx] = tmp_time[tmp_conn>0][0]
         
         #Find primary cyclone  
         #CHECK IF THIS Still works for arbitrary storm id's
-        timsort_cluster = cluster[np.argsort(first_time_conn[cluster-1])]
-
+        timsorted_clusters.append(cluster[np.argsort(first_time_conn)])
+        
+print(timsorted_clusters)
 ######################################################
 # Save results
 ######################################################
