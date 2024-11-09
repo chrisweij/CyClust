@@ -219,6 +219,31 @@ sorted_clusters_bjerknes = sorted(unnest(sorted_subclusters_bjerknes))
 sorted_clusters_stagnant = sorted(unnest(sorted_subclusters_stagnant))
 
 ######################################################
+# Detect primary/secondary cyclones 
+######################################################
+first_time_conn = [None] * nrstorms
+
+# First connected time step of storms
+for strm in range(nrstorms):
+    tmp_time = str_dt[ids_storms[strm+1]]
+    tmp_conn = str_connected[ids_storms[strm+1]]
+    first_time[strm] = tmp_time[0]
+    if(np.any(tmp_conn >0)):
+        first_time_conn[strm] = tmp_time[tmp_conn>0][0]
+
+# All clusters
+for cluster in sorted_clusters:
+    if(len(cluster) == 1):
+        timsort_cluster = cluster
+    elif(len(cluster)>=2):
+        
+        cluster = np.array(cluster)
+        
+        #Find primary cyclone  
+        #CHECK IF THIS Still works for arbitrary storm id's
+        timsort_cluster = cluster[np.argsort(first_time_conn[cluster-1])]
+
+######################################################
 # Save results
 ######################################################
 formatter =  "{:1.1f}"
